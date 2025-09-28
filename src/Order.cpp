@@ -1,11 +1,12 @@
 #include "../include/Order.h"
+#include "../include/IdGenerator.h"
 
-Order::Order(int64_t id, bool isBuy, int64_t price_tick, int quantity, int64_t timestamp) {
-    this->id = id;
+Order::Order(bool isBuy, int64_t priceTick, int quantity, int64_t timestamp) {
+    this->id = IdGenerator::getNext();
     this->isBuy = isBuy;
     this->isActive = true;
-    this->price_tick = price_tick;
+    this->priceTick = price_tick;
     this->quantity = quantity;
-    this->ts_created_us = timestamp;
-    this->ts_last_update_us = timestamp;
+    this->tsCreatedUs = timestamp;
+    this->tsLastUpdateUs = timestamp;
 }

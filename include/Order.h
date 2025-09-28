@@ -8,10 +8,10 @@ struct Order {
         int64_t id;
         bool isBuy;
         bool isActive;
-        int64_t price_tick;
+        int64_t priceTick;
         int quantity;
-        int64_t ts_created_us;
-        int64_t ts_last_update_us;
+        int64_t tsCreatedUs;
+        int64_t tsLastUpdateUs;
 
-        Order(int64_t id, bool isBuy, int64_t price_tick, int quantity, int64_t timestamp);
+        Order(bool isBuy, int64_t priceTick, int quantity, int64_t timestamp);
 };
