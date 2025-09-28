@@ -51,18 +51,18 @@ int cancel_order(int64_t orderId) {
     return 0;
 }
 
-void modify_order(int64_t orderId, int new_quantity, int64_t timestamp) {
+void modify_order(int64_t order_id, int new_quantity, int64_t timestamp) {
     if (new_quantity <= 0) {
-        cancel_order(orderId);
+        cancel_order(order_id);
     }
 
     // get the iterator pointing to the [price, iter_to_order] tuple
-    auto iterLookup = order_lookup.find(orderId);
-    if (iterLookup == order_lookup.end()) {
+    auto iter_lookup = order_lookup.find(order_id);
+    if (iter_lookup == order_lookup.end()) {
         return; // Meaning it didn't exist
     }
 
-    auto& [price, iterator_to_order] = iterLookup->second;
+    auto& [price, iterator_to_order] = iter_lookup->second;
     Order& order_to_modify = *iterator_to_order;
 
     if (new_quantity >= order_to_modify.quantity) {
@@ -80,7 +80,7 @@ void modify_order(int64_t orderId, int new_quantity, int64_t timestamp) {
         int64_t order_price = order_to_modify.priceTick;
 
         price_level_list.erase(iterator_to_order); // this is the iterator pointing to the order itself 
-        order_lookup.erase(iterLookup); // this is the iterator to the tuple [price, iter] stored in the unordered map
+        order_lookup.erase(iter_lookup); // this is the iterator to the tuple [price, iter] stored in the unordered map
 
         add_limit_order(is_order_buy, order_price, new_quantity, timestamp);
     }
