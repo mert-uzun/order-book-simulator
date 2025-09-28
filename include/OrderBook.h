@@ -8,18 +8,18 @@
 
 class OrderBook {
     private:
-        std::unordered_map<int64_t, std::list<Order>> buys;
-        std::unordered_map<int64_t, std::list<Order>> sells;
-        std::unordered_map<int64_t, std::tuple<int64_t, std::list<Order>::iterator> orderLookup;
+        std::map<int64_t, std::list<Order>> buys;
+        std::map<int64_t, std::list<Order>> sells;
+        std::unordered_map<int64_t, std::tuple<int64_t, std::list<Order>::iterator> order_lookup;
         
     public:
         OrderBook();
-        void addLimitOrder();
+        void add_limit_order();
         void addMarketOrder();
-        void calcelOrder();
-        void modifyOrder();
+        void cancelOrder();
+        void modify_order();
         void partialFill();
         int64_t getBestBid();
         int64_t getBestAsk();
         void snapshot();
-}
+};
