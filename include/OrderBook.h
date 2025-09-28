@@ -16,7 +16,7 @@ class OrderBook {
         OrderBook();
         void add_limit_order();
         void addMarketOrder();
-        void cancelOrder();
+        void cancel_order();
         void modify_order();
         void partialFill();
         int64_t getBestBid();

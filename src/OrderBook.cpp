@@ -25,20 +25,39 @@ void OrderBook::addMarketOrder(bool isBuy, int quantity, int64_t timestamp) {
 
 }
 
-void cancelOrder(int64_t orderId) {
-    auto& iter_lookup = order_lookup.at(orderId);
+int cancel_order(int64_t orderId) {
+    auto iter_lookup = order_lookup.find(orderId); // .find(key) returns a temp iterator to the corresponding <key, value> std::pair
+    if (iter_lookup == order;_lookup.end()){
+        std::cout << "This order doesn't exist.";
+        return 1;
+    }
+
     auto& [price, iter_to_order] = iter_lookup->second;
 
-    
+    Order& order_to_delete = *iter_to_order;
+
+    auto& side = order_to_delete.isBuy ? buys : sells;
+
+    auto price_level = side.find(order_to_delete.priceTick);
+    if (price_level == side.end()){
+        std::cout << "Error occured finding the price level or order to modify.";
+        return 1;
+    }
+    auto& price_level_list = price_level->second;
+
+    price_level_list.erase(iter_to_order);
+    order_lookup.erase(iter_lookup);
+
+    return 0;
 }
 
-void modify_order(int64_t orderId, int newQuantity, int64_t timestamp) {
-    if (newQuantity <= 0) {
-        cancelOrder(orderId);
+void modify_order(int64_t orderId, int new_quantity, int64_t timestamp) {
+    if (new_quantity <= 0) {
+        cancel_order(orderId);
     }
 
     // get the iterator pointing to the [price, iter_to_order] tuple
-    auto& iterLookup = order_lookup.find(orderId);
+    auto iterLookup = order_lookup.find(orderId);
     if (iterLookup == order_lookup.end()) {
         return; // Meaning it didn't exist
     }
@@ -46,24 +65,27 @@ void modify_order(int64_t orderId, int newQuantity, int64_t timestamp) {
     auto& [price, iterator_to_order] = iterLookup->second;
     Order& order_to_modify = *iterator_to_order;
 
-    if (newQuantity >= order_to_modify.quantity) {
+    if (new_quantity >= order_to_modify.quantity) {
         auto& side = order_to_modify.isBuy ? buys : sells;
 
-        try {
-            auto& price_level = side.at(order_to_modify);
-        }
-        catch (...) {
+        
+        auto price_level = side.find(order_to_modify.priceTick);
+        if (price_level == side.end()) {
             std::cout << "Error occured finding the price level or order to modify."
             return;
         }
+        auto& price_level_list = price_level->second;
 
-        add_limit_order(order_to_modify.isBuy, order_to_modify.priceTick, newQuantity, timestamp);
+        bool is_order_buy = order_to_modify.isBuy;
+        int64_t order_price = order_to_modify.priceTick;
 
-        price_level.erase(iterator_to_order); // this is the iterator pointing to the order itself 
+        price_level_list.erase(iterator_to_order); // this is the iterator pointing to the order itself 
         order_lookup.erase(iterLookup); // this is the iterator to the tuple [price, iter] stored in the unordered map
+
+        add_limit_order(is_order_buy, order_price, new_quantity, timestamp);
     }
     else {
-        order_to_modify.quantity = newQuantity;
+        order_to_modify.quantity = new_quantity;
         order_to_modify.tsLastUpdateUs = timestamp;
     }
 }
