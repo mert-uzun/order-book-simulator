@@ -10,7 +10,7 @@ class OrderBook {
     private:
         std::unordered_map<int64_t, std::list<Order>> buys;
         std::unordered_map<int64_t, std::list<Order>> sells;
-        std::unordered_map<int64_t, std::tuple<int64_t, std::list<Order>::iterator> order_lookup;
+        std::unordered_map<int64_t, std::tuple<int64_t, std::list<Order>::iterator> orderLookup;
         
     public:
         OrderBook();
