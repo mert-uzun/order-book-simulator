@@ -1,11 +1,12 @@
-#include <unordered_map>
-#include <list>
-#include <queue>
 #include "../include/Order.h"
 #include "../include/Trade.h"
 #include "../include/OrderBook.h"
 
 OrderBook::OrderBook() : buys(), sells(), order_lookup() {}
+
+int OrderBook::match_order() {
+
+}
 
 int64_t OrderBook::add_limit_order(bool isBuy, int64_t priceTick, int quantity, int64_t timestamp) {
     Order newOrder(isBuy, priceTick, quantity, timestamp);
@@ -25,9 +26,9 @@ void OrderBook::addMarketOrder(bool isBuy, int quantity, int64_t timestamp) {
 
 }
 
-int cancel_order(int64_t orderId) {
+int OrderBook::cancel_order(int64_t orderId) {
     auto iter_lookup = order_lookup.find(orderId); // .find(key) returns a temp iterator to the corresponding <key, value> std::pair
-    if (iter_lookup == order;_lookup.end()){
+    if (iter_lookup == order_lookup.end()){
         std::cout << "This order doesn't exist.";
         return 1;
     }
@@ -51,7 +52,7 @@ int cancel_order(int64_t orderId) {
     return 0;
 }
 
-void modify_order(int64_t order_id, int new_quantity, int64_t timestamp) {
+void OrderBook::modify_order(int64_t order_id, int new_quantity, int64_t timestamp) {
     if (new_quantity <= 0) {
         cancel_order(order_id);
     }
@@ -68,10 +69,9 @@ void modify_order(int64_t order_id, int new_quantity, int64_t timestamp) {
     if (new_quantity >= order_to_modify.quantity) {
         auto& side = order_to_modify.isBuy ? buys : sells;
 
-        
         auto price_level = side.find(order_to_modify.priceTick);
         if (price_level == side.end()) {
-            std::cout << "Error occured finding the price level or order to modify."
+            std::cout << "Error occured finding the price level or order to modify.";
             return;
         }
         auto& price_level_list = price_level->second;
@@ -90,10 +90,24 @@ void modify_order(int64_t order_id, int new_quantity, int64_t timestamp) {
     }
 }
 
-void partialFill() {}
+void OrderBook::partialFill() {}
 
-int64_t getBestBid() {}
+/**
+ * @brief Gets the best bid (highest buy price in the market along with the list of orders in that price)
+ * @return returns an iterator pointing to the highest bid in the market as a <price, list<Order>> pair
+ */
+auto OrderBook::get_best_bid() {
+    auto bestBuy = buys.rbegin(); 
+    return bestBuy;
+}
 
-int64_t getBestAsk() {}
+/**
+ * @brief Gets the best ask (lowest sell price in the market along with the list of orders in that price)
+ * @return returns an iterator pointing to the lowest ask in the market as a <price, list<Order>> pair
+ */
+auto OrderBook::get_best_ask() {
+    auto bestSell = sells.begin();
+    return bestSell;
+}
 
-void snaphot() {}
+void OrderBook::snapshot() {}
