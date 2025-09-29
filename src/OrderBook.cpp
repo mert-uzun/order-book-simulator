@@ -128,8 +128,6 @@ void OrderBook::modify_order(int64_t order_id, int new_quantity, int64_t timesta
     }
 }
 
-void OrderBook::partialFill() {}
-
 /**
  * @brief Gets the best bid (highest buy price in the market along with the list of orders in that price)
  * @return returns an iterator pointing to the highest bid in the market as a <price, list<Order>> pair

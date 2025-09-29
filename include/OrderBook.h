@@ -23,6 +23,5 @@ class OrderBook {
         void addMarketOrder(bool isBuy, int quantity, int64_t timestamp);
         int cancel_order(int64_t orderId);
         void modify_order(int64_t order_id, int new_quantity, int64_t timestamp);
-        void partialFill();
         void snapshot();
 };
