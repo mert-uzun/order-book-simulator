@@ -3,9 +3,10 @@
 #include <string>
 #include <cstdint>
 
-const double tick_size = 0.01;
+
 
 struct Order {
+        static const double tick_size;
         int64_t id;
         bool isBuy;
         bool isActive;

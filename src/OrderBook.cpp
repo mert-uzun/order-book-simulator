@@ -110,4 +110,44 @@ auto OrderBook::get_best_ask() {
     return bestSell;
 }
 
-void OrderBook::snapshot() {}
+void OrderBook::snapshot() {
+    std::cout << "**************************" << std::endl;
+
+    std::cout << "Buys:" << std::endl;
+    for (auto iter_buy_map = buys.rbegin(); iter_buy_map != buys.rend(); ++iter_buy_map) {
+        double price_shown = ((iter_buy_map->first) * Order::tick_size);
+        std::cout << "Orders at price " << price_shown << "$ : [";
+        auto& buy_list_at_price = iter_buy_map->second;
+        for (auto iter_buy_list = (buy_list_at_price).begin(); iter_buy_list != buy_list_at_price.end(); ++iter_buy_list) {
+            Order& order_at_iter = *iter_buy_list;
+            std::cout << "id=" << order_at_iter.id << ":" << order_at_iter.quantity;
+
+            if (&order_at_iter != &(buy_list_at_price.back())) {
+                std::cout << ", ";
+            }
+        }
+
+        std::cout << "]" << std::endl;
+    }
+
+    std::cout << "**************************" << std::endl;
+
+    std::cout << "Sells:"<< std::endl;
+    for (auto iter_sell_map = sells.begin(); iter_sell_map != sells.end(); ++iter_sell_map) {
+        double price_shown = ((iter_sell_map->first) * Order::tick_size);
+        std::cout << "Orders at price " << price_shown << "$ : [";
+        auto& sell_list_at_price = iter_sell_map->second;
+        for (auto iter_sell_list = (sell_list_at_price).begin(); iter_sell_list != sell_list_at_price.end(); ++iter_sell_list) {
+            Order& order_at_iter = *iter_sell_list;
+            std::cout << "id=" << order_at_iter.id << ":" << order_at_iter.quantity;
+
+            if (&order_at_iter != &sell_list_at_price.back()) {
+                std::cout << ", ";
+            }
+        }
+
+        std::cout << "]" << std::endl;
+    }
+
+    std::cout << "**************************";
+}
