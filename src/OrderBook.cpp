@@ -22,46 +22,58 @@ int OrderBook::match_order(int64_t orderId) {
 
 int64_t OrderBook::add_limit_order(bool isBuy, int64_t priceTick, int quantity, int64_t timestamp) {
     Order new_order(isBuy, priceTick, quantity, timestamp);
+    int64_t new_order_id = new_order.id;
+    auto& side = isBuy ? buys : sells;
+    auto& opposite_side = isBuy ? sells : buys;
 
-    if (isBuy) {
-        if (priceTick >= get_best_ask()->first) {
-            auto& orders_at_price = get_best_ask()->second;
+    // Has matches in the market
+    while (!opposite_side.empty() && (isBuy && priceTick >= get_best_ask()->first) || (!isBuy && priceTick <= get_best_bid()->first)) {
+        std::list<Order>& orders_at_price = isBuy ? get_best_ask()->second : get_best_bid()->second;
+        int64_t price_level = isBuy ? get_best_ask()->first : get_best_bid()->first;
+
+        while (!orders_at_price.empty()) {
             Order& matched_order = orders_at_price.front();
 
             int matched_quantity = std::min(new_order.quantity, matched_order.quantity);
             new_order.quantity -= matched_quantity;
             matched_order.quantity -= matched_quantity;
 
+            if (isBuy) {
+                trade_log.add_trade(new_order.id, matched_order.id, price_level, matched_quantity, timestamp);
+            }
+            else {
+                trade_log.add_trade(matched_order.id, new_order.id, price_level, matched_quantity, timestamp);
+            }
+            
             if (new_order.quantity == 0) {
-                Trade exec_trade(new_order.id, matched_order.id, priceTick, matched_quantity, timestamp);
-
-                return 0; // As a sign that new order entered the system and find its match immediately
+                return -1; // Indicating that there was no entry to the book, but trades occured
+            }
+            else if (matched_order.quantity == 0) {
+                order_lookup.erase(matched_order.id);
+                orders_at_price.pop_front();
             }
         }
-    }
-    else {
-        if (priceTick <= get_best_bid()->first) {
-            auto& orders_at_price = get_best_bid()->second;
-        }
-    }
-    /*
-    Check if given price has a match in the current market (if its a buy >= best_ask | if its a sell <= best_bid) 
-        if yes: reduce the min price from the new order and the matched one, if new order goes zero->end, if matched goes zero->continue exhausting the iterator.
-        if no: put the object directly in the data holders
-    
-    
-    */
-    
-    int64_t newOrderId = new_order.id;
 
-    auto& side = isBuy ? buys : sells;
+        opposite_side.erase(price_level);
+    }
 
+    // Has no match to trade OR exhausted the whole market, just hold in the market.
     auto& level = side[priceTick];
     auto iter = level.insert(level.end(), new_order); // insert() returns an iterator directly to the newOrder inserted
 
-    order_lookup[newOrderId] = std::make_tuple(priceTick, iter);
+    order_lookup[new_order_id] = std::make_tuple(priceTick, iter);
 
-    return newOrderId;
+    return new_order_id;
+
+    /*
+    Check if given price has a match in the current market (if its a buy >= best_ask | if its a sell <= best_bid) 
+        if yes: reduce the min price from the new order and the matched one, if new order goes zero->end, if matched goes zero->continue exhausting the iterator.
+                if list empties without new order gettign satisfied, delete that price level, then check for new best prices, then exhaust them again,
+                UNTIL THERE ARE NO ORDERS IN THE OPPOSITE SIDE LEFT OR THE NEW BEST PRICE LEVEL DOESN'T MATCH WITH THE NEW ORDER OR NEW ORDER GETTING EXHAUSTED
+
+
+        if no: put the object directly in the data holders    
+    */
 }
 
 void OrderBook::addMarketOrder(bool isBuy, int quantity, int64_t timestamp) {
