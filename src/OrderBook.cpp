@@ -1,21 +1,63 @@
+#include <algorithm>
+#include <cmath>
+
 #include "../include/Order.h"
 #include "../include/Trade.h"
 #include "../include/OrderBook.h"
 
-OrderBook::OrderBook() : buys(), sells(), order_lookup() {}
+OrderBook::OrderBook() : buys(), sells(), order_lookup(), trade_log() {}
 
-int OrderBook::match_order() {
+int OrderBook::match_order(int64_t orderId) {
+    auto iter_lookup = order_lookup.find(orderId);
+    auto& [price, iter_to_order] = iter_lookup->second;
 
+    Order& order_to_match = *iter_to_order;
+
+    auto& side = order_to_match.isBuy ? buys : sells;
+    auto& match_side = order_to_match.isBuy ? sells : buys;
+
+
+    return 1;
 }
 
 int64_t OrderBook::add_limit_order(bool isBuy, int64_t priceTick, int quantity, int64_t timestamp) {
-    Order newOrder(isBuy, priceTick, quantity, timestamp);
-    int64_t newOrderId = newOrder.id;
+    Order new_order(isBuy, priceTick, quantity, timestamp);
+
+    if (isBuy) {
+        if (priceTick >= get_best_ask()->first) {
+            auto& orders_at_price = get_best_ask()->second;
+            Order& matched_order = orders_at_price.front();
+
+            int matched_quantity = std::min(new_order.quantity, matched_order.quantity);
+            new_order.quantity -= matched_quantity;
+            matched_order.quantity -= matched_quantity;
+
+            if (new_order.quantity == 0) {
+                Trade exec_trade(new_order.id, matched_order.id, priceTick, matched_quantity, timestamp);
+
+                return 0; // As a sign that new order entered the system and find its match immediately
+            }
+        }
+    }
+    else {
+        if (priceTick <= get_best_bid()->first) {
+            auto& orders_at_price = get_best_bid()->second;
+        }
+    }
+    /*
+    Check if given price has a match in the current market (if its a buy >= best_ask | if its a sell <= best_bid) 
+        if yes: reduce the min price from the new order and the matched one, if new order goes zero->end, if matched goes zero->continue exhausting the iterator.
+        if no: put the object directly in the data holders
+    
+    
+    */
+    
+    int64_t newOrderId = new_order.id;
 
     auto& side = isBuy ? buys : sells;
 
     auto& level = side[priceTick];
-    auto iter = level.insert(level.end(), newOrder); // insert() returns an iterator directly to the newOrder inserted
+    auto iter = level.insert(level.end(), new_order); // insert() returns an iterator directly to the newOrder inserted
 
     order_lookup[newOrderId] = std::make_tuple(priceTick, iter);
 
@@ -96,7 +138,7 @@ void OrderBook::partialFill() {}
  * @brief Gets the best bid (highest buy price in the market along with the list of orders in that price)
  * @return returns an iterator pointing to the highest bid in the market as a <price, list<Order>> pair
  */
-auto OrderBook::get_best_bid() {
+ std::map<int64_t, std::list<Order>>::reverse_iterator OrderBook::get_best_bid() {
     auto bestBuy = buys.rbegin(); 
     return bestBuy;
 }
@@ -105,7 +147,7 @@ auto OrderBook::get_best_bid() {
  * @brief Gets the best ask (lowest sell price in the market along with the list of orders in that price)
  * @return returns an iterator pointing to the lowest ask in the market as a <price, list<Order>> pair
  */
-auto OrderBook::get_best_ask() {
+ std::map<int64_t, std::list<Order>>::iterator OrderBook::get_best_ask() {
     auto bestSell = sells.begin();
     return bestSell;
 }

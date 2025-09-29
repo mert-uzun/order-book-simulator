@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 class IdGenerator {
     private:
         static int64_t current;
