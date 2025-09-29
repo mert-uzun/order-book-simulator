@@ -17,7 +17,6 @@ class OrderBook {
         TradeLog trade_log;
     public:
         OrderBook();
-        int match_order(int64_t orderId);
         int64_t add_limit_order(bool isBuy, int64_t priceTick, int quantity, int64_t timestamp);
         std::map<int64_t, std::list<Order>>::reverse_iterator get_best_bid();
         std::map<int64_t, std::list<Order>>::iterator get_best_ask();

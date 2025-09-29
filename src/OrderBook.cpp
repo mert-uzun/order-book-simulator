@@ -1,25 +1,19 @@
 #include <algorithm>
-#include <cmath>
 
 #include "../include/Order.h"
-#include "../include/Trade.h"
 #include "../include/OrderBook.h"
 
 OrderBook::OrderBook() : buys(), sells(), order_lookup(), trade_log() {}
 
-int OrderBook::match_order(int64_t orderId) {
-    auto iter_lookup = order_lookup.find(orderId);
-    auto& [price, iter_to_order] = iter_lookup->second;
-
-    Order& order_to_match = *iter_to_order;
-
-    auto& side = order_to_match.isBuy ? buys : sells;
-    auto& match_side = order_to_match.isBuy ? sells : buys;
+/**
+ *   Check if given price has a match in the current market (if its a buy >= best_ask | if its a sell <= best_bid) 
+ *   if yes: reduce the min price from the new order and the matched one, if new order goes zero->end, if matched goes zero->continue exhausting the iterator.
+ *           if list empties without new order gettign satisfied, delete that price level, then check for new best prices, then exhaust them again,
+ *           UNTIL THERE ARE NO ORDERS IN THE OPPOSITE SIDE LEFT OR THE NEW BEST PRICE LEVEL DOESN'T MATCH WITH THE NEW ORDER OR NEW ORDER GETTING EXHAUSTED
 
 
-    return 1;
-}
-
+ * if no: put the object directly in the data holders    
+ */
 int64_t OrderBook::add_limit_order(bool isBuy, int64_t priceTick, int quantity, int64_t timestamp) {
     Order new_order(isBuy, priceTick, quantity, timestamp);
     int64_t new_order_id = new_order.id;
@@ -64,16 +58,6 @@ int64_t OrderBook::add_limit_order(bool isBuy, int64_t priceTick, int quantity, 
     order_lookup[new_order_id] = std::make_tuple(priceTick, iter);
 
     return new_order_id;
-
-    /*
-    Check if given price has a match in the current market (if its a buy >= best_ask | if its a sell <= best_bid) 
-        if yes: reduce the min price from the new order and the matched one, if new order goes zero->end, if matched goes zero->continue exhausting the iterator.
-                if list empties without new order gettign satisfied, delete that price level, then check for new best prices, then exhaust them again,
-                UNTIL THERE ARE NO ORDERS IN THE OPPOSITE SIDE LEFT OR THE NEW BEST PRICE LEVEL DOESN'T MATCH WITH THE NEW ORDER OR NEW ORDER GETTING EXHAUSTED
-
-
-        if no: put the object directly in the data holders    
-    */
 }
 
 void OrderBook::addMarketOrder(bool isBuy, int quantity, int64_t timestamp) {
@@ -87,7 +71,7 @@ int OrderBook::cancel_order(int64_t orderId) {
         return 1;
     }
 
-    auto& [price, iter_to_order] = iter_lookup->second;
+    auto& iter_to_order = std::get<1>(iter_lookup->second);
 
     Order& order_to_delete = *iter_to_order;
 
@@ -117,7 +101,7 @@ void OrderBook::modify_order(int64_t order_id, int new_quantity, int64_t timesta
         return; // Meaning it didn't exist
     }
 
-    auto& [price, iterator_to_order] = iter_lookup->second;
+    auto& iterator_to_order = std::get<1>(iter_lookup->second);
     Order& order_to_modify = *iterator_to_order;
 
     if (new_quantity >= order_to_modify.quantity) {
