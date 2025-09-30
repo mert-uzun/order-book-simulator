@@ -14,16 +14,16 @@ OrderBook::OrderBook() : buys(), sells(), order_lookup(), trade_log() {}
 
  * if no: put the object directly in the data holders    
  */
-int64_t OrderBook::add_limit_order(bool isBuy, int64_t priceTick, int quantity, int64_t timestamp) {
+long long OrderBook::add_limit_order(bool isBuy, long long priceTick, int quantity, long long timestamp) {
     Order new_order(isBuy, priceTick, quantity, timestamp);
-    int64_t new_order_id = new_order.id;
+    long long new_order_id = new_order.id;
     auto& side = isBuy ? buys : sells;
     auto& opposite_side = isBuy ? sells : buys;
 
     // Has matches in the market
     while (!opposite_side.empty() && (isBuy && priceTick >= get_best_ask()->first) || (!isBuy && priceTick <= get_best_bid()->first)) {
         std::list<Order>& orders_at_price = isBuy ? get_best_ask()->second : get_best_bid()->second;
-        int64_t price_level = isBuy ? get_best_ask()->first : get_best_bid()->first;
+        long long price_level = isBuy ? get_best_ask()->first : get_best_bid()->first;
 
         while (!orders_at_price.empty()) {
             Order& matched_order = orders_at_price.front();
@@ -68,17 +68,17 @@ int64_t OrderBook::add_limit_order(bool isBuy, int64_t priceTick, int quantity, 
 
     @return 0 if IOC order gets satisfied, 1 if IOC order exhausts all the opposite market
 */
-int OrderBook::add_IOC_order(bool isBuy, int quantity, int64_t timestamp) {
+int OrderBook::add_IOC_order(bool isBuy, int quantity, long long timestamp) {
     Order new_market_order(isBuy, quantity, timestamp);
     auto& opposite_side = isBuy ? sells : buys;
     
     while (!opposite_side.empty()) {
-        int64_t current_best_price = isBuy ? get_best_ask()->first : get_best_bid()->first;
+        long long current_best_price = isBuy ? get_best_ask()->first : get_best_bid()->first;
         std::list<Order>& orders_at_best_price = isBuy ? get_best_ask()->second : get_best_bid()->second;
         
         while (!orders_at_best_price.empty()) {
             Order& matched_order = orders_at_best_price.front();
-            int64_t matched_quantity = std::min(new_market_order.quantity, matched_order.quantity);
+            long long matched_quantity = std::min(new_market_order.quantity, matched_order.quantity);
             new_market_order.quantity -= matched_quantity;
             matched_order.quantity -= matched_quantity;
             matched_order.tsLastUpdateUs = timestamp;
@@ -106,7 +106,7 @@ int OrderBook::add_IOC_order(bool isBuy, int quantity, int64_t timestamp) {
     return 1; // Indicating this order exhausted all the opposite market
 }
 
-int OrderBook::cancel_order(int64_t orderId) {
+int OrderBook::cancel_order(long long orderId) {
     auto iter_lookup = order_lookup.find(orderId); // .find(key) returns a temp iterator to the corresponding <key, value> std::pair
     if (iter_lookup == order_lookup.end()){
         std::cout << "This order doesn't exist.";
@@ -132,7 +132,7 @@ int OrderBook::cancel_order(int64_t orderId) {
     return 0;
 }
 
-void OrderBook::modify_order(int64_t order_id, int new_quantity, int64_t timestamp) {
+void OrderBook::modify_order(long long order_id, int new_quantity, long long timestamp) {
     if (new_quantity <= 0) {
         cancel_order(order_id);
     }
@@ -157,7 +157,7 @@ void OrderBook::modify_order(int64_t order_id, int new_quantity, int64_t timesta
         auto& price_level_list = price_level->second;
 
         bool is_order_buy = order_to_modify.isBuy;
-        int64_t order_price = order_to_modify.priceTick;
+        long long order_price = order_to_modify.priceTick;
 
         price_level_list.erase(iterator_to_order); // this is the iterator pointing to the order itself 
         order_lookup.erase(iter_lookup); // this is the iterator to the tuple [price, iter] stored in the unordered map
@@ -174,7 +174,7 @@ void OrderBook::modify_order(int64_t order_id, int new_quantity, int64_t timesta
  * @brief Gets the best bid (highest buy price in the market along with the list of orders in that price)
  * @return returns an iterator pointing to the highest bid in the market as a <price, list<Order>> pair
  */
- std::map<int64_t, std::list<Order>>::reverse_iterator OrderBook::get_best_bid() {
+ std::map<long long, std::list<Order>>::reverse_iterator OrderBook::get_best_bid() {
     auto bestBuy = buys.rbegin(); 
     return bestBuy;
 }
@@ -183,7 +183,7 @@ void OrderBook::modify_order(int64_t order_id, int new_quantity, int64_t timesta
  * @brief Gets the best ask (lowest sell price in the market along with the list of orders in that price)
  * @return returns an iterator pointing to the lowest ask in the market as a <price, list<Order>> pair
  */
- std::map<int64_t, std::list<Order>>::iterator OrderBook::get_best_ask() {
+ std::map<long long, std::list<Order>>::iterator OrderBook::get_best_ask() {
     auto bestSell = sells.begin();
     return bestSell;
 }

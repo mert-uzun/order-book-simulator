@@ -3,7 +3,7 @@
 
 const double Order::tick_size = 0.001;
 
-Order::Order(bool isBuy, int64_t priceTick, int quantity, int64_t timestamp) {
+Order::Order(bool isBuy, long long priceTick, int quantity, long long timestamp) {
     this->id = IdGenerator::getNext();
     this->isBuy = isBuy;
     this->isActive = true;
@@ -13,7 +13,7 @@ Order::Order(bool isBuy, int64_t priceTick, int quantity, int64_t timestamp) {
     this->tsLastUpdateUs = timestamp;
 }
 
-Order::Order(bool isBuy, int quantity, int64_t timestamp) {
+Order::Order(bool isBuy, int quantity, long long timestamp) {
     this->id = IdGenerator::getNext();
     this->isBuy = isBuy;
     this->isActive = true;

@@ -1,12 +1,12 @@
 #include "../include/IdGenerator.h"
 
-int64_t IdGenerator::current = 1;
-int64_t IdGenerator::currentTrade = 1;
+long long IdGenerator::current = 1;
+long long IdGenerator::currentTrade = 1;
 
-int64_t IdGenerator::getNext() {
+long long IdGenerator::getNext() {
     return current++;
 }
 
-int64_t IdGenerator::getNextTrade() {
+long long IdGenerator::getNextTrade() {
     return currentTrade++;
 }

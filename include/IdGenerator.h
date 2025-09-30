@@ -4,9 +4,9 @@
 
 class IdGenerator {
     private:
-        static int64_t current;
-        static int64_t currentTrade;
+        static long long current;
+        static long long currentTrade;
     public:
-        static int64_t getNext();
-        static int64_t getNextTrade();
+        static long long getNext();
+        static long long getNextTrade();
 };

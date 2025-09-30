@@ -4,7 +4,7 @@
 
 TradeLog::TradeLog() : trades() {}
 
-int64_t TradeLog::add_trade(int64_t buyId, int64_t sellId, int64_t priceTick, int quantity, int64_t timestampUs) {
+long long TradeLog::add_trade(long long buyId, long long sellId, long long priceTick, int quantity, long long timestampUs) {
     trades.emplace_back(buyId, sellId, priceTick, quantity, timestampUs);
     return trades.back().tradeId;
 }

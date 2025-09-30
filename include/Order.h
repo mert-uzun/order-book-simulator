@@ -7,14 +7,14 @@
 
 struct Order {
         static const double tick_size;
-        int64_t id;
+        long long id;
         bool isBuy;
         bool isActive;
-        int64_t priceTick;
+        long long priceTick;
         int quantity;
-        int64_t tsCreatedUs;
-        int64_t tsLastUpdateUs;
+        long long tsCreatedUs;
+        long long tsLastUpdateUs;
 
-        Order(bool isBuy, int64_t priceTick, int quantity, int64_t timestamp);
-        Order(bool isBuy, int quantity, int64_t timestamp);
+        Order(bool isBuy, long long priceTick, int quantity, long long timestamp);
+        Order(bool isBuy, int quantity, long long timestamp);
 };
