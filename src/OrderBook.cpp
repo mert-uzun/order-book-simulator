@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <list>
 
 #include "../include/Order.h"
 #include "../include/OrderBook.h"
@@ -42,12 +41,12 @@ int64_t OrderBook::add_limit_order(bool isBuy, int64_t priceTick, int quantity, 
                 trade_log.add_trade(matched_order.id, new_order.id, price_level, matched_quantity, timestamp);
             }
             
+            if (matched_order.quantity == 0) {
+                order_lookup.erase(matched_order.id);
+                orders_at_price.pop_front();    
+            }
             if (new_order.quantity == 0) {
                 return -1; // Indicating that there was no entry to the book, but trades occured
-            }
-            else if (matched_order.quantity == 0) {
-                order_lookup.erase(matched_order.id);
-                orders_at_price.pop_front();
             }
         }
 
@@ -63,16 +62,48 @@ int64_t OrderBook::add_limit_order(bool isBuy, int64_t priceTick, int quantity, 
     return new_order_id;
 }
 
-void OrderBook::add_market_order(bool isBuy, int quantity, int64_t timestamp) {
+/**
+    First check if orders exists at the best price level, then exhaust all the orders until IOC is satisfied, when its satisfied: return
+        if its not satisfied & orders.empty(): remove this price level from the matching side and reset the loop
+
+    @return 0 if IOC order gets satisfied, 1 if IOC order exhausts all the opposite market
+*/
+int OrderBook::add_IOC_order(bool isBuy, int quantity, int64_t timestamp) {
     Order new_market_order(isBuy, quantity, timestamp);
-    auto& side = isBuy ? buys : sells;
     auto& opposite_side = isBuy ? sells : buys;
     
     while (!opposite_side.empty()) {
         int64_t current_best_price = isBuy ? get_best_ask()->first : get_best_bid()->first;
-        std::list<Order> orders_at_best_price = isBuy ? get_best_ask()->second : get_best_bid()->second;
-      
+        std::list<Order>& orders_at_best_price = isBuy ? get_best_ask()->second : get_best_bid()->second;
+        
+        while (!orders_at_best_price.empty()) {
+            Order& matched_order = orders_at_best_price.front();
+            int64_t matched_quantity = std::min(new_market_order.quantity, matched_order.quantity);
+            new_market_order.quantity -= matched_quantity;
+            matched_order.quantity -= matched_quantity;
+            matched_order.tsLastUpdateUs = timestamp;
+
+            if (isBuy) {
+                trade_log.add_trade(new_market_order.id, matched_order.id, matched_order.priceTick, matched_quantity, timestamp);
+            }
+            else {
+                trade_log.add_trade(matched_order.id, new_market_order.id, matched_order.priceTick, matched_quantity, timestamp);
+            }
+
+            if (matched_order.quantity == 0) {
+                order_lookup.erase(matched_order.id);
+                orders_at_best_price.pop_front();
+                
+            }
+            if (new_market_order.quantity == 0) {
+                return 0; // Indicating the IOC order is satisfied
+            }
+        }
+
+        opposite_side.erase(current_best_price);
     }
+
+    return 1; // Indicating this order exhausted all the opposite market
 }
 
 int OrderBook::cancel_order(int64_t orderId) {
