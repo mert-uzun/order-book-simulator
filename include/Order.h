@@ -16,4 +16,5 @@ struct Order {
         int64_t tsLastUpdateUs;
 
         Order(bool isBuy, int64_t priceTick, int quantity, int64_t timestamp);
+        Order(bool isBuy, int quantity, int64_t timestamp);
 };

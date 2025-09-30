@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <list>
 
 #include "../include/Order.h"
 #include "../include/OrderBook.h"
@@ -30,7 +31,9 @@ int64_t OrderBook::add_limit_order(bool isBuy, int64_t priceTick, int quantity, 
 
             int matched_quantity = std::min(new_order.quantity, matched_order.quantity);
             new_order.quantity -= matched_quantity;
+            new_order.tsLastUpdateUs = timestamp;
             matched_order.quantity -= matched_quantity;
+            matched_order.tsLastUpdateUs = timestamp;
 
             if (isBuy) {
                 trade_log.add_trade(new_order.id, matched_order.id, price_level, matched_quantity, timestamp);
@@ -60,8 +63,16 @@ int64_t OrderBook::add_limit_order(bool isBuy, int64_t priceTick, int quantity, 
     return new_order_id;
 }
 
-void OrderBook::addMarketOrder(bool isBuy, int quantity, int64_t timestamp) {
-
+void OrderBook::add_market_order(bool isBuy, int quantity, int64_t timestamp) {
+    Order new_market_order(isBuy, quantity, timestamp);
+    auto& side = isBuy ? buys : sells;
+    auto& opposite_side = isBuy ? sells : buys;
+    
+    while (!opposite_side.empty()) {
+        int64_t current_best_price = isBuy ? get_best_ask()->first : get_best_bid()->first;
+        std::list<Order> orders_at_best_price = isBuy ? get_best_ask()->second : get_best_bid()->second;
+      
+    }
 }
 
 int OrderBook::cancel_order(int64_t orderId) {
