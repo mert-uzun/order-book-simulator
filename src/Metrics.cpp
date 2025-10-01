@@ -53,7 +53,7 @@ void Metrics::on_fill(long long order_id, Side side, long long fill_price_ticks,
 
 }
 
-void Metrics::on_market_price_update(MarkingMethod marking_method) {
+void Metrics::on_market_price_update() {
 
 }
 
