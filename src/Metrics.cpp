@@ -1,10 +1,20 @@
 #include "../include/Metrics.h"
+#include <cmath>
+#include <cstdlib>
 
-void Metrics::set_config(double tick_size, long long maker_rebate_per_share_ticks, long long taker_fee_per_share_ticks, MarkingMethod marking_method) {
+Metrics::Metrics() {
+    reset();
+}
+
+const int Metrics::TRADING_DAYS_PER_YEAR = 252;
+const double Metrics::HOURS_PER_DAY = 6.5;
+
+void Metrics::set_config(double tick_size, long long maker_rebate_per_share_ticks, long long taker_fee_per_share_ticks, MarkingMethod marking_method, long long return_bucket_interval_us) {
     config.tick_size = tick_size;
     config.maker_rebate_per_share_ticks = maker_rebate_per_share_ticks;
     config.taker_fee_per_share_ticks = taker_fee_per_share_ticks;
     config.marking_method = marking_method;
+    config.return_bucket_interval_us = return_bucket_interval_us;
 }
 
 void Metrics::reset() {
@@ -12,6 +22,7 @@ void Metrics::reset() {
     config.maker_rebate_per_share_ticks = 0;
     config.taker_fee_per_share_ticks = 0;
     config.marking_method = MarkingMethod::MID;
+    config.return_bucket_interval_us = 0;
 
     fees_ticks = 0;
     position = 0;
@@ -27,7 +38,10 @@ void Metrics::reset() {
 
     equity_value_peak_ticks = 0;
     max_dropdown_ticks = 0;
+
     returns_series.clear();
+    current_return_bucket_start_us = 0;
+    last_marked_total_pnl_ticks = 0;
 
     current_best_ask_price_ticks = 0;
     current_best_bid_price_ticks = 0;
@@ -35,11 +49,79 @@ void Metrics::reset() {
     last_mark_price_ticks = 0;
 
     order_cache.clear();
+
+    sharpe_ratio = 0;
+    gross_profit = 0;
+    gross_loss = 0;
+    win_rate = 0;
 }
 
 void Metrics::finalize() {
+    // Update unrealized & total PnL one last time with latest values
+    update_last_mark_price();
 
-}
+    unrealized_pnl_ticks = position * (last_mark_price_ticks - average_entry_price_ticks);
+    total_pnl_ticks = realized_pnl_ticks + unrealized_pnl_ticks + fees_ticks;
+
+    // Check max_equity and max_dropdown, update if there are changes
+    if (total_pnl_ticks > equity_value_peak_ticks) {
+        equity_value_peak_ticks = total_pnl_ticks;
+    }
+    else if (total_pnl_ticks - equity_value_peak_ticks < max_dropdown_ticks) {
+        max_dropdown_ticks = total_pnl_ticks - equity_value_peak_ticks;
+    }
+
+    // Process the last returns bucket
+    returns_series.push_back(total_pnl_ticks - last_marked_total_pnl_ticks);
+    last_marked_total_pnl_ticks = total_pnl_ticks;
+
+    // Calculate summary statistics
+    double returns_mean = 0;
+    double sum_sqrtd_differences = 0;
+    double std_returns = 0;
+    double raw_sharp_ratio = 0;
+    
+    int num_winning_return_buckets = 0;
+    
+    // SHARPE RATIO  
+    if (!returns_series.empty()) {
+        for (auto iter_returns = returns_series.begin(); iter_returns != returns_series.end(); ++iter_returns) {
+            returns_mean += *iter_returns;
+            
+            // Also check if they are positive here, so we don't need another loop through for it
+            if (*iter_returns > 0) {
+                num_winning_return_buckets++;
+
+                // GROSS PROFIT
+                gross_profit += *iter_returns;
+            }
+            else {
+                // GROSS LOSS
+                gross_loss += std::abs(*iter_returns);
+            }
+        }
+
+        for (auto iter_returns = returns_series.begin(); iter_returns != returns_series.end(); ++iter_returns) {
+            sum_sqrtd_differences += (*iter_returns - returns_mean) * (*iter_returns - returns_mean);
+        }
+
+        std_returns = std::sqrt(sum_sqrtd_differences / returns_series.size());
+    }
+
+    if (std_returns) {
+        raw_sharp_ratio = returns_mean / std_returns;
+
+        double num_buckets_in_a_year = (TRADING_DAYS_PER_YEAR * HOURS_PER_DAY * 3600 * 1000000) / config.return_bucket_interval_us;
+        double scaling_factor = std::sqrt(num_buckets_in_a_year);
+
+        sharpe_ratio = raw_sharp_ratio * scaling_factor;
+    }
+
+    // WIN RATE
+    win_rate = double(num_winning_return_buckets) / returns_series.size();
+
+    
+}       
 
 void Metrics::on_order_placed(long long order_id, Side side, long long arrival_price_ticks, long long arrival_timestamp_us, int intended_quantity, bool is_instant) {
 
@@ -53,10 +135,9 @@ void Metrics::on_fill(long long order_id, Side side, long long fill_price_ticks,
 
 }
 
-void Metrics::on_market_price_update() {
+void Metrics::on_market_price_update(long long timestamp_us) {
 
 }
-
 
 int Metrics::get_position() {
     return position;
@@ -92,4 +173,30 @@ double Metrics::get_fill_ratio() {
 
 long long Metrics::get_max_drawdown_ticks() {
     return max_dropdown_ticks;
+}
+
+
+double Metrics::get_sharpe_ratio() {
+    return sharpe_ratio;
+}
+
+double Metrics::get_gross_profit() {
+    return gross_profit;
+}
+
+double Metrics::get_cross_loss() {
+    return gross_loss;
+}
+
+double Metrics::get_win_rate() {
+    return win_rate;
+}
+
+void Metrics::update_last_mark_price() {
+    if (config.marking_method == MarkingMethod::MID) {
+        last_mark_price_ticks = (current_best_bid_price_ticks + current_best_ask_price_ticks) / 2;
+    }
+    else {
+        last_mark_price_ticks = last_trade_price_ticks;
+    }
 }

@@ -4,7 +4,10 @@
 #include <vector>
 
 class Metrics {
-        public:
+    public:
+        static const int TRADING_DAYS_PER_YEAR;
+        static const double HOURS_PER_DAY;
+
         enum class MarkingMethod { 
             MID, // Default is MID
             LAST
@@ -19,13 +22,14 @@ class Metrics {
             double tick_size;
             long long maker_rebate_per_share_ticks;
             long long taker_fee_per_share_ticks;
+            long long return_bucket_interval_us;
             MarkingMethod marking_method;
         };
 
         Config config;
 
         long long fees_ticks;
-        
+
         int position;
         long long average_entry_price_ticks;
         long long realized_pnl_ticks;
@@ -39,7 +43,10 @@ class Metrics {
 
         long long equity_value_peak_ticks;
         long long max_dropdown_ticks;
+
         std::vector<double> returns_series;
+        long long current_return_bucket_start_us;
+        long long last_marked_total_pnl_ticks;
 
         long long current_best_bid_price_ticks;
         long long current_best_ask_price_ticks;
@@ -57,13 +64,22 @@ class Metrics {
 
         std::unordered_map<long long, OrderCacheData> order_cache;
 
-        void set_config(double tick_size, long long maker_rebate_per_share_ticks, long long taker_fee_per_share_ticks, MarkingMethod marking_method);
+        // RESULTS
+        double sharpe_ratio;
+        double gross_profit;
+        double gross_loss; 
+        double win_rate;
+
+        Metrics();
+
+        void set_config(double tick_size, long long maker_rebate_per_share_ticks, long long taker_fee_per_share_ticks, MarkingMethod marking_method, long long return_bucket_interval_us);
         void reset();
         void finalize();
         void on_order_placed(long long order_id, Side side, long long arrival_price_ticks, long long arrival_timestamp_us, int intended_quantity, bool is_instant);
         void on_order_cancelled(long long order_id, int remaining_qty, long long delete_timestamp_us);
         void on_fill(long long order_id, Side side, long long fill_price_ticks, long long fill_timestamp_us, int filled_quantity, bool was_instant);
-        void on_market_price_update();
+        void on_market_price_update(long long timestamp_us);
+        void update_last_mark_price();
 
         int get_position();
         long long get_avg_entry_price_ticks();
@@ -73,4 +89,9 @@ class Metrics {
         long long get_gross_traded_qty();
         double get_fill_ratio();
         long long get_max_drawdown_ticks();
+
+        double get_sharpe_ratio();
+        double get_gross_profit();
+        double get_cross_loss();
+        double get_win_rate();
 };
