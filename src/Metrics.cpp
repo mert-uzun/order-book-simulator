@@ -50,6 +50,7 @@ void Metrics::reset() {
 
     order_cache.clear();
 
+    volatility = 0;
     sharpe_ratio = 0;
     gross_profit = 0;
     gross_loss = 0;
@@ -87,7 +88,7 @@ void Metrics::finalize() {
     if (!returns_series.empty()) {
         for (auto iter_returns = returns_series.begin(); iter_returns != returns_series.end(); ++iter_returns) {
             returns_mean += *iter_returns;
-            
+
             // Also check if they are positive here, so we don't need another loop through for it
             if (*iter_returns > 0) {
                 num_winning_return_buckets++;
@@ -106,6 +107,7 @@ void Metrics::finalize() {
         }
 
         std_returns = std::sqrt(sum_sqrtd_differences / returns_series.size());
+        volatility = std_returns;
     }
 
     if (std_returns) {
@@ -119,9 +121,7 @@ void Metrics::finalize() {
 
     // WIN RATE
     win_rate = double(num_winning_return_buckets) / returns_series.size();
-
-    
-}       
+}
 
 void Metrics::on_order_placed(long long order_id, Side side, long long arrival_price_ticks, long long arrival_timestamp_us, int intended_quantity, bool is_instant) {
 
@@ -175,7 +175,6 @@ long long Metrics::get_max_drawdown_ticks() {
     return max_dropdown_ticks;
 }
 
-
 double Metrics::get_sharpe_ratio() {
     return sharpe_ratio;
 }
@@ -190,6 +189,14 @@ double Metrics::get_cross_loss() {
 
 double Metrics::get_win_rate() {
     return win_rate;
+}
+
+double Metrics::get_volatility() {
+    return volatility;
+}
+
+double Metrics::get_profit_factor() {
+    return gross_profit / gross_loss;
 }
 
 void Metrics::update_last_mark_price() {

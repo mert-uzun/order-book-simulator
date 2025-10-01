@@ -65,6 +65,7 @@ class Metrics {
         std::unordered_map<long long, OrderCacheData> order_cache;
 
         // RESULTS
+        double volatility;
         double sharpe_ratio;
         double gross_profit;
         double gross_loss; 
@@ -90,8 +91,10 @@ class Metrics {
         double get_fill_ratio();
         long long get_max_drawdown_ticks();
 
+        double get_volatility();
         double get_sharpe_ratio();
         double get_gross_profit();
         double get_cross_loss();
+        double get_profit_factor();
         double get_win_rate();
 };
