@@ -24,6 +24,9 @@ class Metrics {
             long long taker_fee_per_share_ticks;
             long long return_bucket_interval_us;
             MarkingMethod marking_method;
+
+            Config(double tick_size, long long maker_rebate_per_share_ticks, long long taker_fee_per_share_ticks, long long return_bucket_interval_us, MarkingMethod marking_method)
+                    : tick_size(tick_size), maker_rebate_per_share_ticks(maker_rebate_per_share_ticks), taker_fee_per_share_ticks(taker_fee_per_share_ticks), return_bucket_interval_us(return_bucket_interval_us), marking_method(marking_method) {}
         };
 
         Config config;
@@ -59,7 +62,10 @@ class Metrics {
             long long arrival_timestamp_us;
             int intended_quantity;
             int remaining_qty;
-            int is_ioc;    
+            int is_ioc;
+
+            OrderCacheData(Side side, long long arrival_mark_price_ticks, long long arrival_timestamp_us, int intended_quantity, int remaining_qty, int is_ioc)
+                            : side(side), arrival_mark_price_ticks(arrival_mark_price_ticks), arrival_timestamp_us(arrival_timestamp_us), intended_quantity(intended_quantity), remaining_qty(remaining_qty), is_ioc(is_ioc) {}
         };
 
         std::unordered_map<long long, OrderCacheData> order_cache;

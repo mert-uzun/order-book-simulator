@@ -2,7 +2,7 @@
 #include <cmath>
 #include <cstdlib>
 
-Metrics::Metrics() {
+Metrics::Metrics() : config(0, 0, 0, 0, MarkingMethod::MID) {
     reset();
 }
 
@@ -18,11 +18,7 @@ void Metrics::set_config(double tick_size, long long maker_rebate_per_share_tick
 }
 
 void Metrics::reset() {
-    config.tick_size = 0;
-    config.maker_rebate_per_share_ticks = 0;
-    config.taker_fee_per_share_ticks = 0;
-    config.marking_method = MarkingMethod::MID;
-    config.return_bucket_interval_us = 0;
+    set_config(0, 0, 0, MarkingMethod::MID, 0);
 
     fees_ticks = 0;
     position = 0;
@@ -124,7 +120,11 @@ void Metrics::finalize() {
 }
 
 void Metrics::on_order_placed(long long order_id, Side side, long long arrival_price_ticks, long long arrival_timestamp_us, int intended_quantity, bool is_instant) {
+    order_cache.try_emplace(order_id, side, arrival_price_ticks, arrival_timestamp_us, intended_quantity, intended_quantity, intended_quantity, is_instant);
 
+    if (!is_instant) {
+        resting_attempted_qty += intended_quantity;
+    }
 }
 
 void Metrics::on_order_cancelled(long long order_id, int remaining_qty, long long delete_timestamp_us) {
@@ -196,6 +196,10 @@ double Metrics::get_volatility() {
 }
 
 double Metrics::get_profit_factor() {
+    if (gross_loss == 0) {
+        return 0;
+    }
+
     return gross_profit / gross_loss;
 }
 
