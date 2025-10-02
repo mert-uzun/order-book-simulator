@@ -120,15 +120,21 @@ void Metrics::finalize() {
 }
 
 void Metrics::on_order_placed(long long order_id, Side side, long long arrival_price_ticks, long long arrival_timestamp_us, int intended_quantity, bool is_instant) {
-    order_cache.try_emplace(order_id, side, arrival_price_ticks, arrival_timestamp_us, intended_quantity, intended_quantity, intended_quantity, is_instant);
+    order_cache.try_emplace(order_id, side, arrival_price_ticks, arrival_timestamp_us, intended_quantity, intended_quantity, is_instant);
 
     if (!is_instant) {
         resting_attempted_qty += intended_quantity;
     }
 }
 
-void Metrics::on_order_cancelled(long long order_id, int remaining_qty, long long delete_timestamp_us) {
+void Metrics::on_order_cancelled(long long order_id, long long delete_timestamp_us) {
+    auto& order = order_cache.at(order_id);
 
+    if (!order.is_ioc) {
+        resting_cancelled_qty += order.remaining_qty;
+    }
+
+    order_cache.erase(order_id);
 }
 
 void Metrics::on_fill(long long order_id, Side side, long long fill_price_ticks, long long fill_timestamp_us, int filled_quantity, bool was_instant) {

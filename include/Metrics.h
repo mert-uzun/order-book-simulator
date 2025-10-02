@@ -83,7 +83,7 @@ class Metrics {
         void reset();
         void finalize();
         void on_order_placed(long long order_id, Side side, long long arrival_price_ticks, long long arrival_timestamp_us, int intended_quantity, bool is_instant);
-        void on_order_cancelled(long long order_id, int remaining_qty, long long delete_timestamp_us);
+        void on_order_cancelled(long long order_id, long long delete_timestamp_us);
         void on_fill(long long order_id, Side side, long long fill_price_ticks, long long fill_timestamp_us, int filled_quantity, bool was_instant);
         void on_market_price_update(long long timestamp_us);
         void update_last_mark_price();
