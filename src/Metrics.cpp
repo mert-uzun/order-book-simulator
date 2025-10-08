@@ -137,10 +137,10 @@ void Metrics::on_order_cancelled(long long order_id, long long delete_timestamp_
     order_cache.erase(order_id);
 }
 
-void Metrics::on_fill(long long order_id_1, Side side, long long fill_price_ticks, long long fill_timestamp_us, int filled_quantity, bool was_instant) {
+void Metrics::on_fill(long long order_id_1, long long fill_price_ticks, long long fill_timestamp_us, int filled_quantity, bool was_instant) {
     gross_traded_qty += filled_quantity;
     last_trade_price_ticks = fill_price_ticks;
-
+    
     if (!was_instant) {
         resting_filled_qty += filled_quantity;
         fees_ticks -= config.maker_rebate_per_share_ticks * filled_quantity;
@@ -150,13 +150,34 @@ void Metrics::on_fill(long long order_id_1, Side side, long long fill_price_tick
     }
 
     auto iter_order_1 = order_cache.find(order_id_1);
+    Side side = iter_order_1->second.side;
 
     long long arrival_price = iter_order_1->second.arrival_mark_price_ticks;
     long long slippage_per_share;
     side == Side::BUYS ? slippage_per_share = fill_price_ticks - arrival_price : slippage_per_share = arrival_price - fill_price_ticks;
     total_slippage_ticks += slippage_per_share * filled_quantity;
 
+    if (position >= 0) {
+        if (side == Side::BUYS) {
+            
+        }
+        else {
+        
+        }
+    }
+    else {
+        
+    }
+    /*
+    if increasing position
+        update position, update avg_price_per_share
+
+    if decreasing position
+        update position, update realized_pnl, handle flips
     
+    
+    
+    */
 
 
 
