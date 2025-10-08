@@ -36,18 +36,18 @@ void Metrics::reset() {
     unrealized_pnl_ticks_series.clear();
     market_price_ticks_series.clear();
 
-
     gross_traded_qty = 0;
     resting_attempted_qty = 0;
     resting_filled_qty = 0;
     resting_cancelled_qty = 0;
+    total_slippage_ticks = 0;
 
     equity_value_peak_ticks = 0;
     max_dropdown_ticks = 0;
 
     returns_series.clear();
     last_return_bucket_start_us = 0;
-    last_marked_total_pnl_ticks = 0;
+    last_return_bucket_total_pnl_ticks = 0;
 
     current_best_ask_price_ticks = 0;
     current_best_bid_price_ticks = 0;
@@ -221,10 +221,10 @@ void Metrics::take_screenshot(long long timestamp, bool is_final) {
     max_dropdown_ticks = std::min(max_dropdown_ticks, total_pnl_ticks - equity_value_peak_ticks);
     
     if (is_final || timestamp - last_return_bucket_start_us >= config.return_bucket_interval_us) {
-        returns_series.push_back(total_pnl_ticks - last_marked_total_pnl_ticks);
+        returns_series.push_back(total_pnl_ticks - last_return_bucket_total_pnl_ticks);
 
         last_return_bucket_start_us = timestamp;
-        last_marked_total_pnl_ticks = total_pnl_ticks;
+        last_return_bucket_total_pnl_ticks = total_pnl_ticks;
     }
 }
 

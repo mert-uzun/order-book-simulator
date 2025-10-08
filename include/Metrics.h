@@ -55,7 +55,7 @@ class Metrics {
 
         std::vector<double> returns_series;
         long long last_return_bucket_start_us;
-        long long last_marked_total_pnl_ticks;
+        long long last_return_bucket_total_pnl_ticks;
 
         long long current_best_bid_price_ticks;
         long long current_best_ask_price_ticks;
