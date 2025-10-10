@@ -14,6 +14,7 @@ class Strategy {
         long long mid_price_ticks;
         long long current_market_price_ticks;
         long long spread_ticks;
+        long long current_inventory;
 
         long long quote_size;
         long long tick_offset_from_mid;
@@ -34,56 +35,57 @@ class Strategy {
         State state;
     public:
         // Getters
-        long long getBestBidTicks() const { return order_book.get_buys().rbegin()->first; }
-        long long getBestAskTicks() const { return order_book.get_sells().begin()->first; }
-        long long getMidPriceTicks() const { return (getBestBidTicks() + getBestAskTicks()) / 2; }
-        long long getCurrentMarketPriceTicks() const { return metrics.last_mark_price_ticks; }
-        long long getSpreadTicks() const { return getBestBidTicks() - getBestAskTicks(); }
+        long long get_best_bid_ticks() const { return order_book.get_buys().rbegin()->first; }
+        long long get_best_ask_ticks() const { return order_book.get_sells().begin()->first; }
+        long long get_mid_price_ticks() const { return (get_best_bid_ticks() + get_best_ask_ticks()) / 2; }
+        long long get_current_market_price_ticks() const { return metrics.last_mark_price_ticks; }
+        long long get_current_inventory() const { return metrics.position; }
+        long long get_spread_ticks() const { return get_best_bid_ticks() - get_best_ask_ticks(); }
         
-        long long getQuoteSize() const { return quote_size; }
-        long long getTickOffsetFromMid() const { return tick_offset_from_mid; }
-        long long getMaxInventory() const { return max_inventory; }
-        long long getCancelThresholdTicks() const { return cancel_threshold_ticks; }
-        long long getCooldownBetweenRequotes() const { return cooldown_between_requotes; }
+        long long get_quote_size() const { return quote_size; }
+        long long get_tick_offset_from_mid() const { return tick_offset_from_mid; }
+        long long get_max_inventory() const { return max_inventory; }
+        long long get_cancel_threshold_ticks() const { return cancel_threshold_ticks; }
+        long long get_cooldown_between_requotes() const { return cooldown_between_requotes; }
         
-        long long getActiveBuyOrderId() const { return active_buy_order_id; }
-        long long getActiveSellOrderId() const { return active_sell_order_id; }
-        long long getLastMidPriceTicks() const { return last_mid_price_ticks; }
-        long long getLastQuoteTimeUs() const { return last_quote_time_us; }
+        long long get_active_buy_order_id() const { return active_buy_order_id; }
+        long long get_active_sell_order_id() const { return active_sell_order_id; }
+        long long get_last_mid_price_ticks() const { return last_mid_price_ticks; }
+        long long get_last_quote_time_us() const { return last_quote_time_us; }
         
-        State getState() const { return state; }
+        State get_state() const { return state; }
         
         // Setters
-        void setQuoteSize(long long value) { 
+        void set_quote_size(long long value) { 
             if (value > 0) {
                 quote_size = value; 
             }
         }
-        void setTickOffsetFromMid(long long value) { tick_offset_from_mid = value; }
-        void setMaxInventory(long long value) { 
+        void set_tick_offset_from_mid(long long value) { tick_offset_from_mid = value; }
+        void set_max_inventory(long long value) { 
             if (value > 0) {
                 max_inventory = value; 
             }
         }
-        void setCancelThresholdTicks(long long value) { cancel_threshold_ticks = value; }
-        void setCooldownBetweenRequotes(long long value) { 
+        void set_cancel_threshold_ticks(long long value) { cancel_threshold_ticks = value; }
+        void set_cooldown_between_requotes(long long value) { 
             if (value > 0) {
                 cooldown_between_requotes = value; 
             }
         }
         
-        void setActiveBuyOrderId(long long value) { active_buy_order_id = value; }
-        void setActiveSellOrderId(long long value) { active_sell_order_id = value; }
-        void setLastMidPriceTicks(long long value) { 
+        void set_active_buy_order_id(long long value) { active_buy_order_id = value; }
+        void set_active_sell_order_id(long long value) { active_sell_order_id = value; }
+        void set_last_mid_price_ticks(long long value) { 
             if (value > 0) {
                 last_mid_price_ticks = value; 
             }
         }
-        void setLastQuoteTimeUs(long long value) { 
+        void set_last_quote_time_us(long long value) { 
             if (value > last_quote_time_us) {
                 last_quote_time_us = value; 
             }       
         }
         
-        void setState(State value) { state = value; }
+        void set_state(State value) { state = value; }
 };
