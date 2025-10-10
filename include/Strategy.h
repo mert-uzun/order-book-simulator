@@ -3,12 +3,16 @@
 #include "Metrics.h"
 #include "Order.h"
 #include "OrderBook.h"
+#include <string>
 
+/**
+    Ping pong strategy is implemented
+*/
 class Strategy {
     private:
         Metrics metrics;
         OrderBook order_book;
-        
+
         long long best_bid_ticks;
         long long best_ask_ticks;
         long long mid_price_ticks;
@@ -34,10 +38,19 @@ class Strategy {
         };
         State state;
     public:
+        Strategy(long long, long long, long long, long long, long long);
+        ~Strategy();
+        
+        void observe_the_market();
+        void check_cancel();
+        void update_last_used_mark_price();
+        long long place_buy();
+        long long place_ask();
+
         // Getters
         long long get_best_bid_ticks() const { return order_book.get_buys().rbegin()->first; }
         long long get_best_ask_ticks() const { return order_book.get_sells().begin()->first; }
-        long long get_mid_price_ticks() const { return (get_best_bid_ticks() + get_best_ask_ticks()) / 2; }
+        long long get_mid_price_ticks() const { return (best_bid_ticks + best_ask_ticks) / 2; }
         long long get_current_market_price_ticks() const { return metrics.last_mark_price_ticks; }
         long long get_current_inventory() const { return metrics.position; }
         long long get_spread_ticks() const { return get_best_bid_ticks() - get_best_ask_ticks(); }
