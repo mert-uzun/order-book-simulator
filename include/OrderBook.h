@@ -24,4 +24,7 @@ class OrderBook {
         int cancel_order(long long orderId);
         void modify_order(long long order_id, int new_quantity, long long timestamp);
         void snapshot();
+
+        std::map<long long, std::list<Order>> get_buys() const {return buys;}
+        std::map<long long, std::list<Order>> get_sells() const {return sells;}
 };
