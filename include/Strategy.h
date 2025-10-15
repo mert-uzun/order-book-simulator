@@ -42,10 +42,15 @@ class Strategy {
         ~Strategy();
         
         void observe_the_market();
-        void check_cancel();
+        void check_cancel(long long);
         void update_last_used_mark_price();
-        long long place_buy();
-        long long place_ask();
+        long long place_buy(long long);
+        long long place_ask(long long);
+        bool isBidFilled(long long);
+        bool isAskFilled(long long);
+
+        void on_market_update(long long);
+        void on_fill(const Trade& trade);
 
         // Getters
         long long get_best_bid_ticks() const { return order_book.get_buys().rbegin()->first; }

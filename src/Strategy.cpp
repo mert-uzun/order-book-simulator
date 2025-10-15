@@ -1,4 +1,6 @@
 #include "../include/Strategy.h"
+#include "../include/Trade.h"
+#include <cstdlib>
 
 Strategy::Strategy(long long quote_size, long long tick_offset, long long max_inv, long long cancel_threshold, long long cooldown_between_requotes) 
                         : metrics(), order_book(), best_bid_ticks(0), best_ask_ticks(0), mid_price_ticks(0), current_market_price_ticks(0), spread_ticks(0), current_inventory(0),
@@ -10,16 +12,23 @@ void Strategy::observe_the_market() {
     best_ask_ticks = get_best_ask_ticks();
     mid_price_ticks = get_mid_price_ticks();
     spread_ticks = get_spread_ticks();
+
+    if (metrics.config.marking_method == Metrics::MarkingMethod::MID) {
+        current_market_price_ticks = mid_price_ticks;
+    }
+    else {
+        current_market_price_ticks = metrics.last_trade_price_ticks;
+    }
 }
 
-void Strategy::check_cancel() {
+void Strategy::check_cancel(long long timestamp_us) {
     observe_the_market();
     
-    if (mid_price_ticks - last_mid_price_ticks > cancel_threshold_ticks) {
+    if (abs(mid_price_ticks - last_mid_price_ticks) > cancel_threshold_ticks) {
         order_book.cancel_order(active_buy_order_id);
         order_book.cancel_order(active_sell_order_id);
-        metrics.on_order_cancelled(active_buy_order_id, long long delete_timestamp_us);
-        metrics.on_order_cancelled(active_sell_order_id, long long delete_timestamp_us);
+        metrics.on_order_cancelled(active_buy_order_id, timestamp_us);
+        metrics.on_order_cancelled(active_sell_order_id, timestamp_us);
     }
 }
 
@@ -27,14 +36,45 @@ void Strategy::update_last_used_mark_price() {
     last_mid_price_ticks = mid_price_ticks;
 }
 
-long long Strategy::place_buy() {
-    long long order_id = order_book.add_limit_order(true, current_market_price_ticks - tick_offset_from_mid, quote_size, long long timestamp);
-    metrics.on_order_placed(order_id, Metrics::Side::BUYS, current_market_price_ticks - tick_offset_from_mid, long long arrival_timestamp_us, quote_size, false);
-    return order_id;
+long long Strategy::place_buy(long long timestamp_us) {
+    if (timestamp_us - last_quote_time_us > cooldown_between_requotes && current_inventory + quote_size <= max_inventory) {
+        long long order_id = order_book.add_limit_order(true, current_market_price_ticks - tick_offset_from_mid, quote_size, timestamp_us);
+        metrics.on_order_placed(order_id, Metrics::Side::BUYS, current_market_price_ticks - tick_offset_from_mid, timestamp_us, quote_size, false);
+        last_quote_time_us = timestamp_us;
+        return order_id;
+    }
+    else {
+        return -1;
+    }
 }
 
-long long Strategy::place_ask() {
-    long long order_id = order_book.add_limit_order(false, current_market_price_ticks + tick_offset_from_mid, quote_size, long long timestamp);
-    metrics.on_order_placed(order_id, Metrics::Side::SELLS, current_market_price_ticks + tick_offset_from_mid, long long arrival_timestamp_us, quote_size, false);
-    return order_id;
+long long Strategy::place_ask(long long timestamp_us) {
+    if (timestamp_us - last_quote_time_us > cooldown_between_requotes && current_inventory - quote_size >= -max_inventory) {
+
+        long long order_id = order_book.add_limit_order(false, current_market_price_ticks + tick_offset_from_mid, quote_size, timestamp_us);
+        metrics.on_order_placed(order_id, Metrics::Side::SELLS, current_market_price_ticks + tick_offset_from_mid, timestamp_us, quote_size, false);
+        last_quote_time_us = timestamp_us;
+        return order_id;
+    }
+    else {
+        return -1;
+    }
+}
+
+bool Strategy::isBidFilled(long long order_id) {
+    return metrics.order_cache.find(order_id) == metrics.order_cache.end();
+}
+
+bool Strategy::isAskFilled(long long order_id) {
+    return metrics.order_cache.find(order_id) == metrics.order_cache.end();
+}
+
+void Strategy::on_market_update(long long timestamp) {
+    observe_the_market();
+    check_cancel(timestamp);
+    
+}
+
+void Strategy::on_fill(const Trade& trade) {
+    metrics.on_fill(trade.buyOrderId, long long fill_price_ticks, long long fill_timestamp_us, int filled_quantity, bool was_instant)
 }
