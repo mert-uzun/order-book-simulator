@@ -72,9 +72,21 @@ bool Strategy::isAskFilled(long long order_id) {
 void Strategy::on_market_update(long long timestamp) {
     observe_the_market();
     check_cancel(timestamp);
+
     
+    /*
+        Marketi gör, değerleri güncelle
+        cancellayacak kadar oynamış mı bak, eğer oynadıysa cancel et
+        cancel ettiysen yerine yenisini koy mutlaka
+
+        eğer active buy ya da active sell yoksa koy
+    */
 }
 
 void Strategy::on_fill(const Trade& trade) {
     metrics.on_fill(trade.buyOrderId, long long fill_price_ticks, long long fill_timestamp_us, int filled_quantity, bool was_instant)
+
+    /*
+        eğer buy alınırsa aynısının karşısına bi sell yerleştir, eğer sell alınırsa karşısına buy yerleştir
+    */
 }
