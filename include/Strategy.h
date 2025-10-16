@@ -42,12 +42,14 @@ class Strategy {
         ~Strategy();
         
         void observe_the_market();
-        void check_cancel(long long);
+        void cancel_mechanism(long long);
         void update_last_used_mark_price();
         long long place_buy(long long);
         long long place_ask(long long);
-        bool isBidFilled(long long);
-        bool isAskFilled(long long);
+        bool is_bid_filled(long long);
+        long long on_bid_filled(long long);
+        bool is_ask_filled(long long);
+        long long on_ask_filled(long long);
 
         void on_market_update(long long);
         void on_fill(const Trade& trade);

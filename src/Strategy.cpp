@@ -21,7 +21,7 @@ void Strategy::observe_the_market() {
     }
 }
 
-void Strategy::check_cancel(long long timestamp_us) {
+void Strategy::cancel_mechanism(long long timestamp_us) {
     observe_the_market();
     
     if (abs(mid_price_ticks - last_mid_price_ticks) > cancel_threshold_ticks) {
@@ -29,6 +29,7 @@ void Strategy::check_cancel(long long timestamp_us) {
         order_book.cancel_order(active_sell_order_id);
         metrics.on_order_cancelled(active_buy_order_id, timestamp_us);
         metrics.on_order_cancelled(active_sell_order_id, timestamp_us);
+
     }
 }
 
@@ -61,25 +62,45 @@ long long Strategy::place_ask(long long timestamp_us) {
     }
 }
 
-bool Strategy::isBidFilled(long long order_id) {
+bool Strategy::is_bid_filled(long long order_id) {
     return metrics.order_cache.find(order_id) == metrics.order_cache.end();
 }
 
-bool Strategy::isAskFilled(long long order_id) {
+long long Strategy::on_bid_filled(long long timestamp_us) {
+    
+
+    return active_buy_order_id;
+}
+
+bool Strategy::is_ask_filled(long long order_id) {
     return metrics.order_cache.find(order_id) == metrics.order_cache.end();
+}
+
+long long Strategy::on_ask_filled(long long timestamp_us) {
+    if (is_ask_filled(active_sell_order_id)) {
+        active_sell_order_id = place_ask(timestamp_us);
+    }
+
+    return active_sell_order_id;
 }
 
 void Strategy::on_market_update(long long timestamp) {
     observe_the_market();
-    check_cancel(timestamp);
+    cancel_mechanism(timestamp);
 
-    
+    if (is_bid_filled(active_buy_order_id)) {
+        active_buy_order_id = place_buy(timestamp);
+    }
+
+    if (is_ask_filled(active_sell_order_id)) {
+        active_sell_order_id = place_ask(timestamp);
+    }
     /*
         Marketi gör, değerleri güncelle
         cancellayacak kadar oynamış mı bak, eğer oynadıysa cancel et
         cancel ettiysen yerine yenisini koy mutlaka
 
-        eğer active buy ya da active sell yoksa koy
+        PING: eğer active buy ya da active sell yoksa koy
     */
 }
 
@@ -87,6 +108,6 @@ void Strategy::on_fill(const Trade& trade) {
     metrics.on_fill(trade.buyOrderId, long long fill_price_ticks, long long fill_timestamp_us, int filled_quantity, bool was_instant)
 
     /*
-        eğer buy alınırsa aynısının karşısına bi sell yerleştir, eğer sell alınırsa karşısına buy yerleştir
+        PONG: eğer buy alınırsa aynısının karşısına bi sell yerleştir, eğer sell alınırsa karşısına buy yerleştir
     */
 }
