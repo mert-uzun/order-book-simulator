@@ -35,10 +35,10 @@ long long OrderBook::add_limit_order(bool isBuy, long long priceTick, int quanti
             matched_order.tsLastUpdateUs = timestamp;
 
             if (isBuy) {
-                trade_log.add_trade(new_order.id, matched_order.id, price_level, matched_quantity, timestamp);
+                trade_log.add_trade(new_order.id, matched_order.id, price_level, matched_quantity, timestamp, false);
             }
             else {
-                trade_log.add_trade(matched_order.id, new_order.id, price_level, matched_quantity, timestamp);
+                trade_log.add_trade(matched_order.id, new_order.id, price_level, matched_quantity, timestamp, false);
             }
             
             if (matched_order.quantity == 0) {
@@ -84,10 +84,10 @@ int OrderBook::add_IOC_order(bool isBuy, int quantity, long long timestamp) {
             matched_order.tsLastUpdateUs = timestamp;
 
             if (isBuy) {
-                trade_log.add_trade(new_market_order.id, matched_order.id, matched_order.priceTick, matched_quantity, timestamp);
+                trade_log.add_trade(new_market_order.id, matched_order.id, matched_order.priceTick, matched_quantity, timestamp, true);
             }
             else {
-                trade_log.add_trade(matched_order.id, new_market_order.id, matched_order.priceTick, matched_quantity, timestamp);
+                trade_log.add_trade(matched_order.id, new_market_order.id, matched_order.priceTick, matched_quantity, timestamp, true);
             }
 
             if (matched_order.quantity == 0) {

@@ -155,7 +155,6 @@ void Metrics::on_fill(long long order_id_1, long long fill_price_per_share_ticks
     long long slippage_per_share;
     side == Side::BUYS ? slippage_per_share = fill_price_per_share_ticks - arrival_price : slippage_per_share = arrival_price - fill_price_per_share_ticks;
     total_slippage_ticks += slippage_per_share * filled_quantity;
-
     
     if (position >= 0) {
         if (side == Side::BUYS) { // Means it is either opening or increasing a position

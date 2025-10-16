@@ -37,7 +37,7 @@ void Strategy::update_last_used_mark_price() {
     last_mid_price_ticks = mid_price_ticks;
 }
 
-long long Strategy::place_buy(long long timestamp_us) {
+long long Strategy::place_ping_buy(long long timestamp_us) {
     if (timestamp_us - last_quote_time_us > cooldown_between_requotes && current_inventory + quote_size <= max_inventory) {
         long long order_id = order_book.add_limit_order(true, current_market_price_ticks - tick_offset_from_mid, quote_size, timestamp_us);
         metrics.on_order_placed(order_id, Metrics::Side::BUYS, current_market_price_ticks - tick_offset_from_mid, timestamp_us, quote_size, false);
@@ -49,7 +49,7 @@ long long Strategy::place_buy(long long timestamp_us) {
     }
 }
 
-long long Strategy::place_ask(long long timestamp_us) {
+long long Strategy::place_ping_ask(long long timestamp_us) {
     if (timestamp_us - last_quote_time_us > cooldown_between_requotes && current_inventory - quote_size >= -max_inventory) {
 
         long long order_id = order_book.add_limit_order(false, current_market_price_ticks + tick_offset_from_mid, quote_size, timestamp_us);
@@ -66,7 +66,7 @@ bool Strategy::is_bid_filled(long long order_id) {
     return metrics.order_cache.find(order_id) == metrics.order_cache.end();
 }
 
-long long Strategy::on_bid_filled(long long timestamp_us) {
+long long Strategy::pong_on_bid_filled(long long timestamp_us) {
     
 
     return active_buy_order_id;
@@ -76,10 +76,8 @@ bool Strategy::is_ask_filled(long long order_id) {
     return metrics.order_cache.find(order_id) == metrics.order_cache.end();
 }
 
-long long Strategy::on_ask_filled(long long timestamp_us) {
-    if (is_ask_filled(active_sell_order_id)) {
-        active_sell_order_id = place_ask(timestamp_us);
-    }
+long long Strategy::pong_on_ask_filled(long long timestamp_us) {
+    
 
     return active_sell_order_id;
 }
@@ -89,11 +87,11 @@ void Strategy::on_market_update(long long timestamp) {
     cancel_mechanism(timestamp);
 
     if (is_bid_filled(active_buy_order_id)) {
-        active_buy_order_id = place_buy(timestamp);
+        active_buy_order_id = place_ping_buy(timestamp);
     }
 
     if (is_ask_filled(active_sell_order_id)) {
-        active_sell_order_id = place_ask(timestamp);
+        active_sell_order_id = place_ping_ask(timestamp);
     }
     /*
         Marketi gör, değerleri güncelle
@@ -105,7 +103,32 @@ void Strategy::on_market_update(long long timestamp) {
 }
 
 void Strategy::on_fill(const Trade& trade) {
-    metrics.on_fill(trade.buyOrderId, long long fill_price_ticks, long long fill_timestamp_us, int filled_quantity, bool was_instant)
+    if (trade.buyOrderId == active_buy_order_id) {
+        int remaining_qty = metrics.order_cache.find(active_buy_order_id)->second.remaining_qty - trade.quantity;
+        metrics.on_fill(active_buy_order_id, trade.priceTick, trade.timestampUs, trade.quantity, trade.was_instant);
+
+        if (remaining_qty == 0) {
+            active_buy_order_id = -1;
+        }
+
+        long long pong_order_id = order_book.add_limit_order(false, trade.priceTick + 1, trade.quantity,  trade.timestampUs);
+        metrics.on_order_placed(pong_order_id, Metrics::Side::SELLS, trade.priceTick + 1, trade.timestampUs, trade.quantity, false);
+
+        current_inventory += trade.quantity;
+    }
+    else if (trade.sellOrderId == active_sell_order_id) {
+        int remaining_qty = metrics.order_cache.find(active_sell_order_id)->second.remaining_qty - trade.quantity;
+        metrics.on_fill(active_sell_order_id, trade.priceTick, trade.timestampUs, trade.quantity, trade.was_instant);
+
+        if (remaining_qty == 0) {
+            active_sell_order_id = -1;
+        }
+
+        long long pong_order_id = order_book.add_limit_order(true, trade.priceTick - 1, trade.quantity, trade.timestampUs);
+        metrics.on_order_placed(pong_order_id, Metrics::Side::BUYS, trade.priceTick - 1, trade.timestampUs, trade.quantity, false);
+
+        current_inventory -= trade.quantity;
+    }
 
     /*
         PONG: eğer buy alınırsa aynısının karşısına bi sell yerleştir, eğer sell alınırsa karşısına buy yerleştir
