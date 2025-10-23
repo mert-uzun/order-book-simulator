@@ -10,6 +10,8 @@ class LatencyQueue {
         struct Event {
             long long time_to_execute;
             std::function<void()> callback;
+
+            bool operator>(const Event& other) const;
         };
 
         enum ActionType {
@@ -36,7 +38,7 @@ class LatencyQueue {
 
     public:
         LatencyQueue();
-        bool operator>(const Event& other) const;
+
         long long compute_execution_latency(ActionType type);
 
         template<typename F>

@@ -9,8 +9,8 @@ LatencyQueue::LatencyQueue() : rd(), engine(rd), event_queue() {
                           50, 150);
 }
 
-bool LatencyQueue::operator>(const Event& other) const {
-
+bool LatencyQueue::Event::operator>(const Event& other) const {
+    return this->time_to_execute > other.time_to_execute;
 }
 
 long long LatencyQueue::compute_execution_latency(ActionType type) {
