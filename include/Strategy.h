@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LatencyQueue.h"
 #include "Metrics.h"
 #include "Order.h"
 #include "OrderBook.h"
@@ -12,6 +13,7 @@ class Strategy {
     private:
         Metrics metrics;
         OrderBook order_book;
+        LatencyQueue latency_queue;
 
         long long best_bid_ticks;
         long long best_ask_ticks;
@@ -41,7 +43,7 @@ class Strategy {
         Strategy(long long, long long, long long, long long, long long);
         ~Strategy();
         
-        void observe_the_market();
+        void observe_the_market(long long);
         void cancel_mechanism(long long);
         void update_last_used_mark_price();
         long long place_ping_buy(long long);

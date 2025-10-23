@@ -14,15 +14,7 @@ class LatencyQueue {
             bool operator>(const Event& other) const;
         };
 
-        enum ActionType {
-            ORDER_SEND,
-            CANCEL,
-            MODIFY,
-            ACKNOWLEDGE_FILL,
-            MARKET_UPDATE
-        };
-
-        struct LatencyBoundaries {
+            struct LatencyBoundaries {
             long long order_send_min, order_send_max;
             long long cancel_min, cancel_max;
             long long modify_min, modify_max;
@@ -37,6 +29,14 @@ class LatencyQueue {
         LatencyBoundaries latency_boundaries;
 
     public:
+        enum ActionType {
+            ORDER_SEND,
+            CANCEL,
+            MODIFY,
+            ACKNOWLEDGE_FILL,
+            MARKET_UPDATE
+        };
+
         LatencyQueue();
 
         long long compute_execution_latency(ActionType type);
@@ -51,7 +51,7 @@ class LatencyQueue {
                                    long long, long long,
                                    long long, long long);
 
-        // GETTERS
+        // Getters
         const auto& get_event_queue() const {
             return event_queue;
         }
