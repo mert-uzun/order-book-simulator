@@ -13,7 +13,7 @@ bool LatencyQueue::operator>(const Event& other) const {
 
 }
 
-long long LatencyQueue::compute_execution_time(ActionType type) {
+long long LatencyQueue::compute_execution_latency(ActionType type) {
     switch (type) {
         case ORDER_SEND: {
             std::uniform_int_distribution<long long> distribution(latency_boundaries.order_send_min, latency_boundaries.order_send_max);
@@ -45,8 +45,10 @@ long long LatencyQueue::compute_execution_time(ActionType type) {
     }
 }
 
-void LatencyQueue::schedule_event(ActionType type, std::function<void()> callback) {
-
+template<typename F>
+void LatencyQueue::schedule_event(long long timestamp_us, ActionType type, F&& func) {
+    long long execution_latency = compute_execution_latency(type);
+    event_queue.emplace(timestamp_us + execution_latency, func);
 }
 
 void LatencyQueue::process_until(long long timestamp_us) {

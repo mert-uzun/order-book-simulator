@@ -37,8 +37,11 @@ class LatencyQueue {
     public:
         LatencyQueue();
         bool operator>(const Event& other) const;
-        long long compute_execution_time(ActionType type);
-        void schedule_event(ActionType type, std::function<void()> callback);
+        long long compute_execution_latency(ActionType type);
+
+        template<typename F>
+        void schedule_event(long long timestamp_us, ActionType type, F&& func);
+
         void process_until(long long timestamp_us);
         void reset_latency_profile(long long, long long, 
                                    long long, long long,
