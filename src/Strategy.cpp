@@ -97,23 +97,27 @@ void Strategy::on_market_update(long long timestamp) {
 
 void Strategy::on_fill(const Trade& trade) {
     if (trade.buyOrderId == active_buy_order_id) {
-        int remaining_qty = metrics.order_cache.find(active_buy_order_id)->second.remaining_qty - trade.quantity;
-        metrics.on_fill(active_buy_order_id, trade.priceTick, trade.timestampUs, trade.quantity, trade.was_instant);
+        latency_queue.schedule_event(trade.timestampUs, LatencyQueue::ActionType::ACKNOWLEDGE_FILL, [this, trade]() {
+            int remaining_qty = metrics.order_cache.find(trade.buyOrderId)->second.remaining_qty - trade.quantity;
+            metrics.on_fill(trade.buyOrderId, trade.priceTick, trade.timestampUs, trade.quantity, trade.was_instant);
 
-        if (remaining_qty == 0) {
-            active_buy_order_id = -1;
-        }
+            if (remaining_qty == 0 && active_buy_order_id == trade.buyOrderId) {
+                active_buy_order_id = -1;
+            }
 
-        long long pong_order_id = order_book.add_limit_order(false, trade.priceTick + 1, trade.quantity,  trade.timestampUs);
-        metrics.on_order_placed(pong_order_id, Metrics::Side::SELLS, trade.priceTick + 1, trade.timestampUs, trade.quantity, false);
+            latency_queue.schedule_event(trade.timestampUs + latency_queue.compute_execution_latency(LatencyQueue::ActionType::ACKNOWLEDGE_FILL), LatencyQueue::ActionType::ORDER_SEND, [this, trade]() {
+                long long pong_order_id = order_book.add_limit_order(false, trade.priceTick + 1, trade.quantity,  trade.timestampUs);
+                metrics.on_order_placed(pong_order_id, Metrics::Side::SELLS, trade.priceTick + 1, trade.timestampUs, trade.quantity, false);
 
-        current_inventory += trade.quantity;
+                current_inventory += trade.quantity;
+            });            
+        });        
     }
     else if (trade.sellOrderId == active_sell_order_id) {
-        int remaining_qty = metrics.order_cache.find(active_sell_order_id)->second.remaining_qty - trade.quantity;
-        metrics.on_fill(active_sell_order_id, trade.priceTick, trade.timestampUs, trade.quantity, trade.was_instant);
+        int remaining_qty = metrics.order_cache.find(trade.sellOrderId)->second.remaining_qty - trade.quantity;
+        metrics.on_fill(trade.sellOrderId, trade.priceTick, trade.timestampUs, trade.quantity, trade.was_instant);
 
-        if (remaining_qty == 0) {
+        if (remaining_qty == 0 && active_sell_order_id == trade.sellOrderId) {
             active_sell_order_id = -1;
         }
 
