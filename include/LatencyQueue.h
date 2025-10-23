@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <queue>
+#include <random>
 #include <vector>
 
 class LatencyQueue {
@@ -27,13 +28,16 @@ class LatencyQueue {
             long long market_update_min, market_update_max;
         };
 
+        std::random_device rd;
+        std::mt19937 engine;
+
         std::priority_queue<Event, std::vector<Event>, std::greater<Event>> event_queue;
         LatencyBoundaries latency_boundaries;
 
     public:
         LatencyQueue();
         bool operator>(const Event& other) const;
-        long long compute_execution_time(ActionType type) const;
+        long long compute_execution_time(ActionType type);
         void schedule_event(ActionType type, std::function<void()> callback);
         void process_until(long long timestamp_us);
         void reset_latency_profile(long long, long long, 

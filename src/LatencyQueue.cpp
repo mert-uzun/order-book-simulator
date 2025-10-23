@@ -1,15 +1,48 @@
 #include "../include/LatencyQueue.h"
+#include <random>
 
-LatencyQueue::LatencyQueue() {
-
+LatencyQueue::LatencyQueue() : rd(), engine(rd), event_queue() {
+    reset_latency_profile(50, 200,
+                          30, 150, 
+                          40, 180, 
+                          100, 400, 
+                          50, 150);
 }
 
 bool LatencyQueue::operator>(const Event& other) const {
 
 }
 
-long long LatencyQueue::compute_execution_time(ActionType type) const {
-
+long long LatencyQueue::compute_execution_time(ActionType type) {
+    switch (type) {
+        case ORDER_SEND: {
+            std::uniform_int_distribution<long long> distribution(latency_boundaries.order_send_min, latency_boundaries.order_send_max);
+            long long execution_time = distribution(engine);
+            return execution_time;
+        }            
+        case CANCEL: {
+            std::uniform_int_distribution<long long> distibution(latency_boundaries.cancel_min, latency_boundaries.cancel_max);
+            long long execution_time = distibution(engine);
+            return execution_time;
+        }
+        case MODIFY: {
+            std::uniform_int_distribution<long long> distribution(latency_boundaries.modify_min, latency_boundaries.modify_max);
+            long long execution_time = distribution(engine);
+            return execution_time;
+        }
+        case ACKNOWLEDGE_FILL: {
+            std::uniform_int_distribution<long long> distribution(latency_boundaries.acknowledge_fill_min, latency_boundaries.acknowledge_fill_max);
+            long long execution_time = distribution(engine);
+            return execution_time;
+        }
+        case MARKET_UPDATE: {
+            std::uniform_int_distribution<long long> distribution(latency_boundaries.market_update_min, latency_boundaries.market_update_max);
+            long long execution_time = distribution(engine);
+            return execution_time;
+        }            
+        default:
+            return 100;
+    }
 }
 
 void LatencyQueue::schedule_event(ActionType type, std::function<void()> callback) {
