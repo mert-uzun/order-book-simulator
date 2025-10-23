@@ -26,15 +26,14 @@ void Strategy::observe_the_market(long long timestamp_us) {
 void Strategy::cancel_mechanism(long long timestamp_us) {
     observe_the_market(timestamp_us);
 
-    latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::CANCEL, [&]() {
-        if (abs(mid_price_ticks - last_mid_price_ticks) > cancel_threshold_ticks) {
+    if (abs(mid_price_ticks - last_mid_price_ticks) > cancel_threshold_ticks) {
+        latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::CANCEL, [&]() {
             order_book.cancel_order(active_buy_order_id);
             order_book.cancel_order(active_sell_order_id);
             metrics.on_order_cancelled(active_buy_order_id, timestamp_us);
             metrics.on_order_cancelled(active_sell_order_id, timestamp_us);
-    
-        }
-    });
+        });
+    }    
 }
 
 void Strategy::update_last_used_mark_price() {
