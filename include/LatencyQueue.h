@@ -29,7 +29,13 @@ class LatencyQueue {
         std::priority_queue<Event, std::vector<Event>, std::greater<Event>> event_queue;
 
     public:
-        
-
-
+        LatencyQueue();
+        bool operator>(const Event& other) const;
+        long long compute_execution_time(ActionType type) const;
+        void schedule_event(ActionType type, std::function<void()> callback);
+        void process_until(long long timestamp_us);
+        void reset_latency_profile(long long, long long, 
+                                   long long, long long,
+                                   long long, long long,
+                                   long long, long long);
 };
