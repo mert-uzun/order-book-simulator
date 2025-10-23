@@ -42,9 +42,11 @@ void Strategy::update_last_used_mark_price() {
 
 long long Strategy::place_ping_buy(long long timestamp_us) {
     if (timestamp_us - last_quote_time_us > cooldown_between_requotes && current_inventory + quote_size <= max_inventory) {
-        long long order_id = order_book.add_limit_order(true, current_market_price_ticks - tick_offset_from_mid, quote_size, timestamp_us);
-        metrics.on_order_placed(order_id, Metrics::Side::BUYS, current_market_price_ticks - tick_offset_from_mid, timestamp_us, quote_size, false);
-        last_quote_time_us = timestamp_us;
+        latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::ORDER_SEND, [&]() {
+            long long order_id = order_book.add_limit_order(true, current_market_price_ticks - tick_offset_from_mid, quote_size, timestamp_us);
+            metrics.on_order_placed(order_id, Metrics::Side::BUYS, current_market_price_ticks - tick_offset_from_mid, timestamp_us, quote_size, false);
+            last_quote_time_us = timestamp_us;
+        })        
         return order_id;
     }
     else {
@@ -69,24 +71,12 @@ bool Strategy::is_bid_filled(long long order_id) {
     return metrics.order_cache.find(order_id) == metrics.order_cache.end();
 }
 
-long long Strategy::pong_on_bid_filled(long long timestamp_us) {
-    
-
-    return active_buy_order_id;
-}
-
 bool Strategy::is_ask_filled(long long order_id) {
     return metrics.order_cache.find(order_id) == metrics.order_cache.end();
 }
 
-long long Strategy::pong_on_ask_filled(long long timestamp_us) {
-    
-
-    return active_sell_order_id;
-}
-
 void Strategy::on_market_update(long long timestamp) {
-    observe_the_market();
+    observe_the_market(timestamp);
     cancel_mechanism(timestamp);
 
     if (is_bid_filled(active_buy_order_id)) {
