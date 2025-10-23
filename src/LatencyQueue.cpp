@@ -17,7 +17,11 @@ void LatencyQueue::schedule_event(ActionType type, std::function<void()> callbac
 }
 
 void LatencyQueue::process_until(long long timestamp_us) {
-
+    while (!event_queue.empty() && timestamp_us > event_queue.top().time_to_execute) {
+        auto event = event_queue.top();
+        event_queue.pop();
+        event.callback();
+    }
 }
 
 void LatencyQueue::reset_latency_profile(long long order_send_min, long long order_send_max, 
