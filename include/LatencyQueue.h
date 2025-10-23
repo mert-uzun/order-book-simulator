@@ -41,4 +41,17 @@ class LatencyQueue {
                                    long long, long long,
                                    long long, long long,
                                    long long, long long);
+
+        // GETTERS
+        const auto& get_event_queue() const {
+            return event_queue;
+        }
+
+        const auto& get_latency_boundaries() const {
+            return latency_boundaries;
+        }
+
+        bool is_empty() const {
+            return event_queue.empty();
+        }
 };
