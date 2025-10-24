@@ -114,17 +114,21 @@ void Strategy::on_fill(const Trade& trade) {
         });        
     }
     else if (trade.sellOrderId == active_sell_order_id) {
-        int remaining_qty = metrics.order_cache.find(trade.sellOrderId)->second.remaining_qty - trade.quantity;
-        metrics.on_fill(trade.sellOrderId, trade.priceTick, trade.timestampUs, trade.quantity, trade.was_instant);
-
-        if (remaining_qty == 0 && active_sell_order_id == trade.sellOrderId) {
-            active_sell_order_id = -1;
-        }
-
-        long long pong_order_id = order_book.add_limit_order(true, trade.priceTick - 1, trade.quantity, trade.timestampUs);
-        metrics.on_order_placed(pong_order_id, Metrics::Side::BUYS, trade.priceTick - 1, trade.timestampUs, trade.quantity, false);
-
-        current_inventory -= trade.quantity;
+        latency_queue.schedule_event(trade.timestampUs, LatencyQueue::ActionType::ACKNOWLEDGE_FILL, [this, trade]() {
+            int remaining_qty = metrics.order_cache.find(trade.sellOrderId)->second.remaining_qty - trade.quantity;
+            metrics.on_fill(trade.sellOrderId, trade.priceTick, trade.timestampUs, trade.quantity, trade.was_instant);
+    
+            if (remaining_qty == 0 && active_sell_order_id == trade.sellOrderId) {
+                active_sell_order_id = -1;
+            }
+    
+            latency_queue.schedule_event(trade.timestampUs + latency_queue.compute_execution_latency(LatencyQueue::ActionType::ACKNOWLEDGE_FILL), LatencyQueue::ActionType::ORDER_SEND, [this, trade]() {
+                long long pong_order_id = order_book.add_limit_order(true, trade.priceTick - 1, trade.quantity, trade.timestampUs);
+                metrics.on_order_placed(pong_order_id, Metrics::Side::BUYS, trade.priceTick - 1, trade.timestampUs, trade.quantity, false);
+        
+                current_inventory -= trade.quantity;
+            });            
+        });
     }
 
     /*
