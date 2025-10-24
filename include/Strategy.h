@@ -46,8 +46,8 @@ class Strategy {
         void observe_the_market(long long);
         void cancel_mechanism(long long);
         void update_last_used_mark_price();
-        long long place_ping_buy(long long);
-        long long place_ping_ask(long long);
+        void place_ping_buy(long long);
+        void place_ping_ask(long long);
         bool is_bid_filled(long long);
         long long pong_on_bid_filled(long long);
         bool is_ask_filled(long long);

@@ -40,30 +40,25 @@ void Strategy::update_last_used_mark_price() {
     last_mid_price_ticks = mid_price_ticks;
 }
 
-long long Strategy::place_ping_buy(long long timestamp_us) {
+void Strategy::place_ping_buy(long long timestamp_us) {
     if (timestamp_us - last_quote_time_us > cooldown_between_requotes && current_inventory + quote_size <= max_inventory) {
         latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::ORDER_SEND, [&]() {
             long long order_id = order_book.add_limit_order(true, current_market_price_ticks - tick_offset_from_mid, quote_size, timestamp_us);
             metrics.on_order_placed(order_id, Metrics::Side::BUYS, current_market_price_ticks - tick_offset_from_mid, timestamp_us, quote_size, false);
             last_quote_time_us = timestamp_us;
-        })        
-        return order_id;
-    }
-    else {
-        return -1;
+            active_buy_order_id = order_id;
+        });
     }
 }
 
-long long Strategy::place_ping_ask(long long timestamp_us) {
+void Strategy::place_ping_ask(long long timestamp_us) {
     if (timestamp_us - last_quote_time_us > cooldown_between_requotes && current_inventory - quote_size >= -max_inventory) {
-
-        long long order_id = order_book.add_limit_order(false, current_market_price_ticks + tick_offset_from_mid, quote_size, timestamp_us);
-        metrics.on_order_placed(order_id, Metrics::Side::SELLS, current_market_price_ticks + tick_offset_from_mid, timestamp_us, quote_size, false);
-        last_quote_time_us = timestamp_us;
-        return order_id;
-    }
-    else {
-        return -1;
+        latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::ORDER_SEND, [&]() {
+            long long order_id = order_book.add_limit_order(false, current_market_price_ticks + tick_offset_from_mid, quote_size, timestamp_us);
+            metrics.on_order_placed(order_id, Metrics::Side::SELLS, current_market_price_ticks + tick_offset_from_mid, timestamp_us, quote_size, false);
+            last_quote_time_us = timestamp_us;
+            active_sell_order_id = order_id;
+        });
     }
 }
 
@@ -80,11 +75,11 @@ void Strategy::on_market_update(long long timestamp) {
     cancel_mechanism(timestamp);
 
     if (is_bid_filled(active_buy_order_id)) {
-        active_buy_order_id = place_ping_buy(timestamp);
+        place_ping_buy(timestamp);
     }
 
     if (is_ask_filled(active_sell_order_id)) {
-        active_sell_order_id = place_ping_ask(timestamp);
+        place_ping_ask(timestamp);
     }
     /*
         Marketi gör, değerleri güncelle
