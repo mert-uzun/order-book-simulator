@@ -9,6 +9,7 @@ class LatencyQueue {
     private:
         struct Event {
             long long time_to_execute;
+            
             std::function<void()> callback;
 
             bool operator>(const Event& other) const;
@@ -42,7 +43,10 @@ class LatencyQueue {
         long long compute_execution_latency(ActionType type);
 
         template<typename F>
-        void schedule_event(long long timestamp_us, ActionType type, F&& func);
+        void schedule_event(long long timestamp_us, ActionType type, F&& func) {
+            long long execution_latency = compute_execution_latency(type);
+            event_queue.emplace(timestamp_us + execution_latency, func);
+        }
 
         void process_until(long long timestamp_us);
         void reset_latency_profile(long long, long long, 

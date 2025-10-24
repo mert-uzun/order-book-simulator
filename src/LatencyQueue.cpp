@@ -45,12 +45,6 @@ long long LatencyQueue::compute_execution_latency(ActionType type) {
     }
 }
 
-template<typename F>
-void LatencyQueue::schedule_event(long long timestamp_us, ActionType type, F&& func) {
-    long long execution_latency = compute_execution_latency(type);
-    event_queue.emplace(timestamp_us + execution_latency, func);
-}
-
 void LatencyQueue::process_until(long long timestamp_us) {
     while (!event_queue.empty() && timestamp_us > event_queue.top().time_to_execute) {
         auto event = event_queue.top();
