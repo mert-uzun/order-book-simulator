@@ -27,7 +27,7 @@ void Strategy::cancel_mechanism(long long timestamp_us) {
     observe_the_market(timestamp_us);
 
     if (abs(mid_price_ticks - last_mid_price_ticks) > cancel_threshold_ticks) {
-        latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::CANCEL, [&]() {
+        latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::CANCEL, [this, timestamp_us]() {
             order_book.cancel_order(active_buy_order_id);
             order_book.cancel_order(active_sell_order_id);
             metrics.on_order_cancelled(active_buy_order_id, timestamp_us);
@@ -42,7 +42,7 @@ void Strategy::update_last_used_mark_price() {
 
 void Strategy::place_ping_buy(long long timestamp_us) {
     if (timestamp_us - last_quote_time_us > cooldown_between_requotes && current_inventory + quote_size <= max_inventory) {
-        latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::ORDER_SEND, [&]() {
+        latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::ORDER_SEND, [this, timestamp_us]() {
             long long order_id = order_book.add_limit_order(true, current_market_price_ticks - tick_offset_from_mid, quote_size, timestamp_us);
             metrics.on_order_placed(order_id, Metrics::Side::BUYS, current_market_price_ticks - tick_offset_from_mid, timestamp_us, quote_size, false);
             last_quote_time_us = timestamp_us;
@@ -53,7 +53,7 @@ void Strategy::place_ping_buy(long long timestamp_us) {
 
 void Strategy::place_ping_ask(long long timestamp_us) {
     if (timestamp_us - last_quote_time_us > cooldown_between_requotes && current_inventory - quote_size >= -max_inventory) {
-        latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::ORDER_SEND, [&]() {
+        latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::ORDER_SEND, [this, timestamp_us]() {
             long long order_id = order_book.add_limit_order(false, current_market_price_ticks + tick_offset_from_mid, quote_size, timestamp_us);
             metrics.on_order_placed(order_id, Metrics::Side::SELLS, current_market_price_ticks + tick_offset_from_mid, timestamp_us, quote_size, false);
             last_quote_time_us = timestamp_us;
