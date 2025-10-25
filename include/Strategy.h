@@ -56,6 +56,10 @@ class Strategy {
         void on_market_update(long long);
         void on_fill(const Trade& trade);
 
+        void execute_latency_queue(long long current_timestamp_us) {
+            latency_queue.process_until(current_timestamp_us);
+        }
+
         // Getters
         long long get_best_bid_ticks() const { return order_book.get_buys().rbegin()->first; }
         long long get_best_ask_ticks() const { return order_book.get_sells().begin()->first; }
@@ -76,6 +80,9 @@ class Strategy {
         long long get_last_quote_time_us() const { return last_quote_time_us; }
         
         State get_state() const { return state; }
+
+        Metrics::OrderCacheData get_active_buy_order_data();
+        Metrics::OrderCacheData get_active_sell_order_data();
         
         // Setters
         void set_quote_size(long long value) { 
@@ -110,8 +117,4 @@ class Strategy {
         }
         
         void set_state(State value) { state = value; }
-
-        // Getters       
-        Metrics::OrderCacheData get_active_buy_order_data();
-        Metrics::OrderCacheData get_active_sell_order_data();
 };

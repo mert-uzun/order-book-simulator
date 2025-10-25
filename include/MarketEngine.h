@@ -25,6 +25,7 @@ class MarketEngine {
 
         void simulate_background_dynamics();
         void check_and_trigger_fills(long long timestamp_us);
+        void check_and_execute_events(long long timestamp);
 
         // Getters
         OrderBook& get_orderbook() {

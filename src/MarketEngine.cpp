@@ -1,6 +1,7 @@
 #include "../include/MarketEngine.h"
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <random>
 
 long long MarketEngine::env_order_id = 1000000;
@@ -15,6 +16,8 @@ void MarketEngine::update(long long timestamp_us) {
     check_and_trigger_fills(timestamp_us);
 
     strategy.on_market_update(timestamp_us);
+
+    check_and_execute_events(timestamp_us);
 }
 
 void MarketEngine::simulate_background_dynamics() {
@@ -87,4 +90,8 @@ void MarketEngine::check_and_trigger_fills(long long timestamp_us) {
             strategy.on_fill(trade);
         }
     }    
+}
+
+void MarketEngine::check_and_execute_events(long long timestamp) {
+    strategy.execute_latency_queue(timestamp);
 }
