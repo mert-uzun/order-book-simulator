@@ -47,9 +47,10 @@ long long LatencyQueue::compute_execution_latency(ActionType type) {
 
 void LatencyQueue::process_until(long long timestamp_us) {
     while (!event_queue.empty() && timestamp_us > event_queue.top().time_to_execute) {
+        long long time_to_exec = event_queue.top().time_to_execute;
         auto event = event_queue.top();
         event_queue.pop();
-        event.callback();
+        event.callback(time_to_exec);
     }
 }
 

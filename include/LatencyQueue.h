@@ -10,7 +10,7 @@ class LatencyQueue {
         struct Event {
             long long time_to_execute;
             
-            std::function<void()> callback;
+            std::function<void(long long time_to_execute)> callback;
 
             bool operator>(const Event& other) const;
         };
