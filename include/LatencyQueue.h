@@ -49,11 +49,11 @@ class LatencyQueue {
         }
 
         void process_until(long long timestamp_us);
-        void reset_latency_profile(long long, long long, 
-                                   long long, long long,
-                                   long long, long long,
-                                   long long, long long,
-                                   long long, long long);
+        void reset_latency_profile(long long order_send_min, long long order_send_max, 
+                                   long long cancel_min, long long cancel_max, 
+                                   long long modify_min, long long modify_max, 
+                                   long long acknowledge_fill_min, long long acknowledge_fill_max,
+                                   long long market_update_min, long long market_update_max);
 
         // Getters
         const auto& get_event_queue() const {
