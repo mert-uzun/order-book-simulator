@@ -12,7 +12,7 @@
 class Strategy {
     private:
         Metrics metrics;
-        OrderBook order_book;
+        OrderBook& order_book;
         LatencyQueue latency_queue;
 
         long long best_bid_ticks;
@@ -40,7 +40,7 @@ class Strategy {
         };
         State state;
     public:
-        Strategy(long long, long long, long long, long long, long long);
+        Strategy(OrderBook&, long long, long long, long long, long long, long long);
         ~Strategy();
         
         void observe_the_market(long long);
