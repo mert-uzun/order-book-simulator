@@ -1,6 +1,7 @@
 #include "../include/Strategy.h"
 #include "../include/Trade.h"
 #include <cstdlib>
+#include <stdexcept>
 
 Strategy::Strategy(OrderBook& orderbook, long long quote_size, long long tick_offset, long long max_inv, long long cancel_threshold, long long cooldown_between_requotes) 
                         : metrics(), order_book(orderbook), latency_queue(), best_bid_ticks(0), best_ask_ticks(0), mid_price_ticks(0), current_market_price_ticks(0), spread_ticks(0), current_inventory(0),
@@ -138,4 +139,22 @@ void Strategy::on_fill(const Trade& trade) {
     /*
         Problem: schedule_event'e passlediğim lambdanın içine bir şekilde randomized latency'i iletmem lazım - çözüldü, lambdalara gerçekleştikleri zamanı passledim bu sayede ne zaman gerçekleşiyolarsa bu bilgiyi içerde kullanabildim.
     */
+}
+
+Metrics::OrderCacheData Strategy::get_active_buy_order_data() {
+    if (active_buy_order_id != -1) {
+        return metrics.order_cache.find(active_buy_order_id)->second;
+    }
+    else {
+        throw std::runtime_error("You cannot get data from metrics.order_cache when active buy order id is -1!");
+    }
+}
+
+Metrics::OrderCacheData Strategy::get_active_sell_order_data() {
+    if (active_sell_order_id != -1) {
+        return metrics.order_cache.find(active_sell_order_id)->second;
+    }
+    else {
+        throw std::runtime_error("You cannot get data from metrics.order_cache when active sell order id is -1!");
+    }
 }

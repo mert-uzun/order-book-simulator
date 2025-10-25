@@ -4,8 +4,8 @@
 
 TradeLog::TradeLog() : trades() {}
 
-long long TradeLog::add_trade(long long buyId, long long sellId, long long priceTick, int quantity, long long timestampUs) {
-    trades.emplace_back(buyId, sellId, priceTick, quantity, timestampUs);
+long long TradeLog::add_trade(long long buy_id, long long sell_id, long long price_tick, int quantity, long long timestamp_us, bool was_instant) {
+    trades.emplace_back(buy_id, sell_id, price_tick, quantity, timestamp_us, was_instant);
     return trades.back().tradeId;
 }
 

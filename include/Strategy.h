@@ -106,8 +106,12 @@ class Strategy {
         void set_last_quote_time_us(long long value) { 
             if (value > last_quote_time_us) {
                 last_quote_time_us = value; 
-            }       
+            }
         }
         
         void set_state(State value) { state = value; }
+
+        // Getters       
+        Metrics::OrderCacheData get_active_buy_order_data();
+        Metrics::OrderCacheData get_active_sell_order_data();
 };
