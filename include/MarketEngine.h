@@ -14,6 +14,9 @@ class MarketEngine {
         static long long env_order_id;
         static const double tick_size;
 
+        std::random_device rng;
+        std::mt19937 rand_engine;
+
         long long market_price_ticks;
         long long spread;
         double volatility;

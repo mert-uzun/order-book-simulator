@@ -2,6 +2,7 @@
 #include <random>
 
 LatencyQueue::LatencyQueue() : rd(), engine(rd), event_queue() {
+    // Initialize with defaults
     reset_latency_profile(50, 200,
                           30, 150, 
                           40, 180, 
