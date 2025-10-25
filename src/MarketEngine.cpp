@@ -16,7 +16,7 @@ void MarketEngine::update(long long timestamp_us) {
 
     strategy.on_market_update(timestamp_us);
 
-    check_and_execute_events(timestamp_us);
+    execute_events_until(timestamp_us);
 }
 
 void MarketEngine::simulate_background_dynamics() {
@@ -91,6 +91,6 @@ void MarketEngine::check_and_trigger_fills(long long timestamp_us) {
     }    
 }
 
-void MarketEngine::check_and_execute_events(long long timestamp) {
+void MarketEngine::execute_events_until(long long timestamp) {
     strategy.execute_latency_queue(timestamp);
 }
