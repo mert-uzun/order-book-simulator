@@ -93,6 +93,8 @@ void Metrics::finalize(long long timestamp) {
             }
         }
 
+        returns_mean = returns_mean / returns_series.size();
+
         for (auto iter_returns = returns_series.begin(); iter_returns != returns_series.end(); ++iter_returns) {
             sum_sqrtd_differences += (*iter_returns - returns_mean) * (*iter_returns - returns_mean);
         }
@@ -123,7 +125,12 @@ void Metrics::on_order_placed(long long order_id, Side side, long long arrival_p
 }
 
 void Metrics::on_order_cancelled(long long order_id, long long delete_timestamp_us) {
-    auto& order = order_cache.at(order_id);
+    auto iter = order_cache.find(order_id);
+    if (iter == order_cache.end()) {
+        return;
+    }
+
+    auto& order = iter->second;
 
     if (!order.is_ioc) {
         resting_cancelled_qty += order.remaining_qty;

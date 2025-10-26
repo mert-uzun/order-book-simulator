@@ -4,12 +4,12 @@
 #include <stdexcept>
 
 Strategy::Strategy(OrderBook& orderbook, long long quote_size, long long tick_offset, long long max_inv, long long cancel_threshold, long long cooldown_between_requotes) 
-                        : metrics(), order_book(orderbook), latency_queue(), best_bid_ticks(0), best_ask_ticks(0), mid_price_ticks(0), current_market_price_ticks(0), spread_ticks(0), current_inventory(0),
+                        : metrics(), order_book(orderbook), latency_queue(), best_bid_ticks(0), best_ask_ticks(0), mid_price_ticks(0), current_market_price_ticks(0), spread_ticks(0),
                         quote_size(quote_size), tick_offset_from_mid(tick_offset), max_inventory(max_inv), cancel_threshold_ticks(cancel_threshold), cooldown_between_requotes(cooldown_between_requotes), 
                         active_buy_order_id(-1), active_sell_order_id(-1), last_pinged_mid_price_ticks(0), last_quote_time_us(0) {};
 
 void Strategy::observe_the_market(long long timestamp_us) {
-    latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::MARKET_UPDATE, [&](long long exec_time) {
+    latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::MARKET_UPDATE, [this](long long exec_time) {
         best_bid_ticks = get_best_bid_ticks();
         best_ask_ticks = get_best_ask_ticks();
         mid_price_ticks = get_mid_price_ticks();
@@ -25,14 +25,18 @@ void Strategy::observe_the_market(long long timestamp_us) {
 }
 
 void Strategy::cancel_mechanism(long long timestamp_us) {
-    observe_the_market(timestamp_us);
-
     if (abs(mid_price_ticks - last_pinged_mid_price_ticks) > cancel_threshold_ticks) {
         latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::CANCEL, [this, timestamp_us](long long exec_time) {
-            order_book.cancel_order(active_buy_order_id);
-            order_book.cancel_order(active_sell_order_id);
-            metrics.on_order_cancelled(active_buy_order_id, exec_time);
-            metrics.on_order_cancelled(active_sell_order_id, exec_time);
+            if (active_buy_order_id != -1) {
+                order_book.cancel_order(active_buy_order_id);
+                metrics.on_order_cancelled(active_buy_order_id, exec_time);
+                active_buy_order_id = -1;
+            }
+            if (active_sell_order_id != -1) {
+                order_book.cancel_order(active_sell_order_id);
+                metrics.on_order_cancelled(active_sell_order_id, exec_time);
+                active_sell_order_id = -1;
+            }
         });
     }    
 }
@@ -42,7 +46,7 @@ void Strategy::update_last_used_mark_price() {
 }
 
 void Strategy::place_ping_buy(long long timestamp_us) {
-    if (timestamp_us - last_quote_time_us > cooldown_between_requotes && current_inventory + quote_size <= max_inventory) {
+    if (timestamp_us - last_quote_time_us > cooldown_between_requotes && metrics.position + quote_size <= max_inventory) {
         latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::ORDER_SEND, [this, timestamp_us](long long exec_time) {
             long long order_id = order_book.add_limit_order(true, current_market_price_ticks - tick_offset_from_mid, quote_size, exec_time);
             metrics.on_order_placed(order_id, Metrics::Side::BUYS, current_market_price_ticks - tick_offset_from_mid, exec_time, quote_size, false);
@@ -55,7 +59,7 @@ void Strategy::place_ping_buy(long long timestamp_us) {
 }
 
 void Strategy::place_ping_ask(long long timestamp_us) {
-    if (timestamp_us - last_quote_time_us > cooldown_between_requotes && current_inventory - quote_size >= -max_inventory) {
+    if (timestamp_us - last_quote_time_us > cooldown_between_requotes && metrics.position - quote_size >= -max_inventory) {
         latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::ORDER_SEND, [this, timestamp_us](long long exec_time) {
             long long order_id = order_book.add_limit_order(false, current_market_price_ticks + tick_offset_from_mid, quote_size, exec_time);
             metrics.on_order_placed(order_id, Metrics::Side::SELLS, current_market_price_ticks + tick_offset_from_mid, exec_time, quote_size, false);
@@ -109,8 +113,6 @@ void Strategy::on_fill(const Trade& trade) {
             latency_queue.schedule_event(ack_exec_time, LatencyQueue::ActionType::ORDER_SEND, [this, trade](long long exec_time) {
                 long long pong_order_id = order_book.add_limit_order(false, trade.priceTick + 1, trade.quantity,  exec_time);
                 metrics.on_order_placed(pong_order_id, Metrics::Side::SELLS, trade.priceTick + 1, exec_time, trade.quantity, false);
-
-                current_inventory += trade.quantity;
             });            
         });        
     }
@@ -126,8 +128,6 @@ void Strategy::on_fill(const Trade& trade) {
             latency_queue.schedule_event(ack_exec_time, LatencyQueue::ActionType::ORDER_SEND, [this, trade](long long exec_time) {
                 long long pong_order_id = order_book.add_limit_order(true, trade.priceTick - 1, trade.quantity, exec_time);
                 metrics.on_order_placed(pong_order_id, Metrics::Side::BUYS, trade.priceTick - 1, exec_time, trade.quantity, false);
-        
-                current_inventory -= trade.quantity;
             });
         });
     }

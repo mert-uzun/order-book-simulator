@@ -20,8 +20,7 @@ class Strategy {
         long long mid_price_ticks;
         long long current_market_price_ticks;
         long long spread_ticks;
-        long long current_inventory;
-
+        
         long long quote_size;
         long long tick_offset_from_mid;
         long long max_inventory;
@@ -61,8 +60,8 @@ class Strategy {
         }
 
         // Getters
-        long long get_best_bid_ticks() const { return order_book.get_buys().rbegin()->first; }
-        long long get_best_ask_ticks() const { return order_book.get_sells().begin()->first; }
+        long long get_best_bid_ticks() const { return order_book.get_buys().empty() ? 0 : order_book.get_buys().rbegin()->first; }
+        long long get_best_ask_ticks() const { return order_book.get_sells().empty() ? 0 : order_book.get_sells().begin()->first; }
         long long get_mid_price_ticks() const { return (best_bid_ticks + best_ask_ticks) / 2; }
         long long get_current_market_price_ticks() const { return metrics.last_mark_price_ticks; }
         long long get_current_inventory() const { return metrics.position; }
