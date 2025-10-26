@@ -83,6 +83,8 @@ class Strategy {
 
         Metrics::OrderCacheData get_active_buy_order_data();
         Metrics::OrderCacheData get_active_sell_order_data();
+
+        Metrics& get_metrics() { return metrics; }
         
         // Setters
         void set_quote_size(long long value) { 
