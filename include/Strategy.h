@@ -66,7 +66,7 @@ class Strategy {
         long long get_mid_price_ticks() const { return (best_bid_ticks + best_ask_ticks) / 2; }
         long long get_current_market_price_ticks() const { return metrics.last_mark_price_ticks; }
         long long get_current_inventory() const { return metrics.position; }
-        long long get_spread_ticks() const { return get_best_bid_ticks() - get_best_ask_ticks(); }
+        long long get_spread_ticks() const { return get_best_ask_ticks() - get_best_bid_ticks(); }
         
         long long get_quote_size() const { return quote_size; }
         long long get_tick_offset_from_mid() const { return tick_offset_from_mid; }

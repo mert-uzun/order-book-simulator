@@ -12,6 +12,8 @@ MarketEngine::MarketEngine(long long strategy_quote_size, long long strategy_tic
 void MarketEngine::update(long long timestamp_us) {
     simulate_background_dynamics();
 
+    notify_metrics_of_market_state(timestamp_us);
+
     check_and_trigger_fills(timestamp_us);
 
     strategy.on_market_update(timestamp_us);
@@ -92,4 +94,10 @@ void MarketEngine::check_and_trigger_fills(long long timestamp_us) {
 
 void MarketEngine::execute_events_until(long long timestamp) {
     strategy.execute_latency_queue(timestamp);
+}
+
+void MarketEngine::notify_metrics_of_market_state(long long timestamp_us) {
+    long long simulated_best_bid = market_price_ticks - spread / 2;
+    long long simulated_best_ask = market_price_ticks + spread / 2;
+    strategy.get_metrics().on_market_price_update(timestamp_us, simulated_best_bid, simulated_best_ask);
 }

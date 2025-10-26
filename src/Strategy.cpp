@@ -14,7 +14,7 @@ void Strategy::observe_the_market(long long timestamp_us) {
         best_ask_ticks = get_best_ask_ticks();
         mid_price_ticks = get_mid_price_ticks();
         spread_ticks = get_spread_ticks();
-    
+
         if (metrics.config.marking_method == Metrics::MarkingMethod::MID) {
             current_market_price_ticks = mid_price_ticks;
         }

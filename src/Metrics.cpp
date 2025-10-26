@@ -9,7 +9,7 @@ const int Metrics::TRADING_DAYS_PER_YEAR = 252;
 const double Metrics::HOURS_PER_DAY = 6.5;
 
 Metrics::Metrics() : config(0, 0, 0, 0, MarkingMethod::MID), timestamp_series(), total_pnl_ticks_series(), 
-                    realized_pnl_ticks_series(), unrealized_pnl_ticks_series(), market_price_ticks_series(), returns_series(), order_cache() {
+                    realized_pnl_ticks_series(), unrealized_pnl_ticks_series(), spread_ticks_series(), market_price_ticks_series(), returns_series(), order_cache() {
     reset();
 }
 
@@ -34,6 +34,7 @@ void Metrics::reset() {
     total_pnl_ticks_series.clear();
     realized_pnl_ticks_series.clear();
     unrealized_pnl_ticks_series.clear();
+    spread_ticks_series.clear();
     market_price_ticks_series.clear();
 
     gross_traded_qty = 0;
@@ -214,6 +215,7 @@ void Metrics::take_screenshot(long long timestamp, bool is_final) {
     realized_pnl_ticks_series.push_back(realized_pnl_ticks);
     unrealized_pnl_ticks_series.push_back(unrealized_pnl_ticks);
     total_pnl_ticks_series.push_back(total_pnl_ticks);
+    spread_ticks_series.push_back(current_best_ask_price_ticks - current_best_bid_price_ticks);
     market_price_ticks_series.push_back(last_mark_price_ticks);
 
     equity_value_peak_ticks = std::max(total_pnl_ticks, equity_value_peak_ticks);

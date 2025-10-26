@@ -42,6 +42,7 @@ class Metrics {
         std::vector<long long> total_pnl_ticks_series;
         std::vector<long long> realized_pnl_ticks_series;
         std::vector<long long> unrealized_pnl_ticks_series;
+        std::vector<long long> spread_ticks_series;
         std::vector<long long> market_price_ticks_series;
 
         long gross_traded_qty;
