@@ -4,7 +4,13 @@
 #include "Metrics.h"
 #include "Order.h"
 #include "OrderBook.h"
+#include <functional>
+#include <queue>
 #include <string>
+#include <map>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 /**
     Ping pong strategy is implemented
@@ -14,6 +20,10 @@ class Strategy {
         Metrics metrics;
         OrderBook& order_book;
         LatencyQueue latency_queue;
+
+        using PongOrderData = std::pair<long long, std::pair<long long, int>>;
+        std::priority_queue<PongOrderData> buy_pongs;
+        std::priority_queue<PongOrderData, std::vector<PongOrderData>, std::greater<PongOrderData>> sell_pongs;
 
         long long best_bid_ticks;
         long long best_ask_ticks;
@@ -42,17 +52,18 @@ class Strategy {
         Strategy(OrderBook&, long long, long long, long long, long long, long long);
         ~Strategy();
         
-        void observe_the_market(long long);
+        void observe_the_market(long long timestamp, long long market_price);
         void cancel_mechanism(long long);
         void update_last_used_mark_price();
         void place_ping_buy(long long);
         void place_ping_ask(long long);
-        bool is_bid_filled(long long);
+        bool is_bid_ping_filled(long long);
         long long pong_on_bid_filled(long long);
-        bool is_ask_filled(long long);
+        bool is_ask_ping_filled(long long);
         long long pong_on_ask_filled(long long);
+        void check_and_fill_pongs(long long market_price, long long timestamp_us);
 
-        void on_market_update(long long);
+        void on_market_update(long long timestamp, long long market_price);
         void on_fill(const Trade& trade);
 
         void execute_latency_queue(long long current_timestamp_us) {

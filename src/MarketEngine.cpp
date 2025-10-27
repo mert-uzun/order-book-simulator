@@ -16,7 +16,7 @@ void MarketEngine::update(long long timestamp_us) {
 
     check_and_trigger_fills(timestamp_us);
 
-    strategy.on_market_update(timestamp_us);
+    strategy.on_market_update(timestamp_us, market_price_ticks);
 
     execute_events_until(timestamp_us);
 }

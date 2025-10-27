@@ -2,25 +2,29 @@
 #include "../include/Trade.h"
 #include <cstdlib>
 #include <stdexcept>
+#include <utility>
 
 Strategy::Strategy(OrderBook& orderbook, long long quote_size, long long tick_offset, long long max_inv, long long cancel_threshold, long long cooldown_between_requotes) 
-                        : metrics(), order_book(orderbook), latency_queue(), best_bid_ticks(0), best_ask_ticks(0), mid_price_ticks(0), current_market_price_ticks(0), spread_ticks(0),
+                        : metrics(), order_book(orderbook), buy_pongs(), sell_pongs(), latency_queue(), best_bid_ticks(0), best_ask_ticks(0), mid_price_ticks(0), current_market_price_ticks(0), spread_ticks(0),
                         quote_size(quote_size), tick_offset_from_mid(tick_offset), max_inventory(max_inv), cancel_threshold_ticks(cancel_threshold), cooldown_between_requotes(cooldown_between_requotes), 
                         active_buy_order_id(-1), active_sell_order_id(-1), last_pinged_mid_price_ticks(0), last_quote_time_us(0) {};
 
-void Strategy::observe_the_market(long long timestamp_us) {
-    latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::MARKET_UPDATE, [this](long long exec_time) {
+void Strategy::observe_the_market(long long timestamp_us, long long market_price) {
+    latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::MARKET_UPDATE, [this, market_price](long long exec_time) {
         best_bid_ticks = get_best_bid_ticks();
         best_ask_ticks = get_best_ask_ticks();
         mid_price_ticks = get_mid_price_ticks();
         spread_ticks = get_spread_ticks();
 
-        if (metrics.config.marking_method == Metrics::MarkingMethod::MID) {
-            current_market_price_ticks = mid_price_ticks;
-        }
-        else {
-            current_market_price_ticks = metrics.last_trade_price_ticks;
-        }
+        // Since the system now uses a dynamic market generating engine, these are commented. Uncomment when system uses a full-order-book as market.
+        // if (metrics.config.marking_method == Metrics::MarkingMethod::MID) {
+        //     current_market_price_ticks = mid_price_ticks;
+        // }
+        // else {
+        //     current_market_price_ticks = metrics.last_trade_price_ticks;
+        // }
+
+        current_market_price_ticks = market_price;
     });
 }
 
@@ -71,32 +75,34 @@ void Strategy::place_ping_ask(long long timestamp_us) {
     }
 }
 
-bool Strategy::is_bid_filled(long long order_id) {
+bool Strategy::is_bid_ping_filled(long long order_id) {
     return metrics.order_cache.find(order_id) == metrics.order_cache.end();
 }
 
-bool Strategy::is_ask_filled(long long order_id) {
+bool Strategy::is_ask_ping_filled(long long order_id) {
     return metrics.order_cache.find(order_id) == metrics.order_cache.end();
 }
 
-void Strategy::on_market_update(long long timestamp) {
-    observe_the_market(timestamp);
+void Strategy::on_market_update(long long timestamp, long long market_price) {
+    observe_the_market(timestamp, market_price);
     cancel_mechanism(timestamp);
 
-    if (is_bid_filled(active_buy_order_id)) {
+    if (is_bid_ping_filled(active_buy_order_id)) {
         place_ping_buy(timestamp);
     }
 
-    if (is_ask_filled(active_sell_order_id)) {
+    if (is_ask_ping_filled(active_sell_order_id)) {
         place_ping_ask(timestamp);
     }
 
+    check_and_fill_pongs(current_market_price_ticks, timestamp);
+    
     /*
-        Marketi gör, değerleri güncelle
-        cancellayacak kadar oynamış mı bak, eğer oynadıysa cancel et
-        cancel ettiysen yerine yenisini koy mutlaka
-
-        PING: eğer active buy ya da active sell yoksa koy
+        Observe the market, update the values
+        See if the market moves enough to cancel previous pings, cancel if yes
+        Send new pings if you cancelled in the previous step
+        
+        PING: if there are no active buy or active sell
     */
 }
 
@@ -112,6 +118,7 @@ void Strategy::on_fill(const Trade& trade) {
 
             latency_queue.schedule_event(ack_exec_time, LatencyQueue::ActionType::ORDER_SEND, [this, trade](long long exec_time) {
                 long long pong_order_id = order_book.add_limit_order(false, trade.priceTick + 1, trade.quantity,  exec_time);
+                sell_pongs.emplace(trade.priceTick + 1, std::pair<long long, int>(pong_order_id, trade.quantity));
                 metrics.on_order_placed(pong_order_id, Metrics::Side::SELLS, trade.priceTick + 1, exec_time, trade.quantity, false);
             });            
         });        
@@ -127,18 +134,42 @@ void Strategy::on_fill(const Trade& trade) {
 
             latency_queue.schedule_event(ack_exec_time, LatencyQueue::ActionType::ORDER_SEND, [this, trade](long long exec_time) {
                 long long pong_order_id = order_book.add_limit_order(true, trade.priceTick - 1, trade.quantity, exec_time);
+                buy_pongs.emplace(trade.priceTick - 1, std::pair<long long, int>(pong_order_id, trade.quantity));
                 metrics.on_order_placed(pong_order_id, Metrics::Side::BUYS, trade.priceTick - 1, exec_time, trade.quantity, false);
             });
         });
     }
 
     /*
-        PONG: eğer buy alınırsa aynısının karşısına bi sell yerleştir, eğer sell alınırsa karşısına buy yerleştir
+        PONG: place a sell at the opposite if bid ping is filled, vice versa
     */
 
     /*
-        Problem: schedule_event'e passlediğim lambdanın içine bir şekilde randomized latency'i iletmem lazım - çözüldü, lambdalara gerçekleştikleri zamanı passledim bu sayede ne zaman gerçekleşiyolarsa bu bilgiyi içerde kullanabildim.
+        Problem: I needed to somehow pass the randomized latency into the lambda passed to schedule_event - solved, I passed the actual execution time to the lambdas, so they can use this information internally whenever they are executed.
     */
+}
+
+void Strategy::check_and_fill_pongs(long long market_price, long long timestamp_us) {
+    // Check for pong bids, if market price is below them consider them filled.
+    while (!buy_pongs.empty() && market_price <= buy_pongs.top().first) {
+        PongOrderData highest_bid_pong_order_data = buy_pongs.top();
+            
+        latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::ACKNOWLEDGE_FILL, [this, highest_bid_pong_order_data](long long exec_time) {
+            metrics.on_fill(highest_bid_pong_order_data.second.first, highest_bid_pong_order_data.first, exec_time, highest_bid_pong_order_data.second.second, false);
+        });
+    
+        buy_pongs.pop();
+    }    
+
+    while (!sell_pongs.empty() && market_price >= sell_pongs.top().first) {
+        PongOrderData lowest_sell_pong_order_data = sell_pongs.top();
+    
+        latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::ACKNOWLEDGE_FILL, [this, lowest_sell_pong_order_data](long long exec_time) {
+            metrics.on_fill(lowest_sell_pong_order_data.second.first, lowest_sell_pong_order_data.first, exec_time, lowest_sell_pong_order_data.second.second, false);
+        });
+
+        sell_pongs.pop();
+    }
 }
 
 Metrics::OrderCacheData Strategy::get_active_buy_order_data() {
