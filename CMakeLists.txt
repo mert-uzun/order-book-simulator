@@ -1,0 +1,66 @@
+# Minimum CMake version required
+cmake_minimum_required(VERSION 3.14)
+
+# Project Name
+project(LatencyAwareOrderBookSim)
+
+# C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Find all header and source files
+file(GLOB_RECURCE SOURCES "src/*.cpp")
+file(GLOB_RECURCE HEADERS "include/*.h")
+
+# Log the found source files
+message(STATUS "Found ${CMAKE_CURRENT_SOURCE_DIR}/src files")
+foreach(SOURCE ${SOURCES})
+    message(STATUS "    ${SOURCE}")
+endforeach(SOURCE ${SOURCES})
+
+
+# Add source and header files to a library
+add_library(OrderBookLib ${SOURCES} ${HEADERS})
+
+# Tell the compiler where to look for header files
+target_include_directories(OrderBookLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+
+# Include FetchContent module
+include(FetchContent)
+
+# Tell CMake to download version 1.14.0 of GoogleTest
+FetchContent_Declare(
+    googletest
+    GITHUB_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.14.0
+)
+
+# On Windows, this prevents overriding parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+# Now download and make GoogleTest available for CMake
+FetchContent_MakeAvailable(googletest)
+
+# Enable testing
+enable_testing()
+
+# Create an executable with name OrderBookTests from the code test_orderbook_cpp
+add_executable(OrderBookTests
+    tests/test_orderbook.cpp    
+)
+
+# Link the test executable with the library and GoogleTests framework + main
+target_link_libraries(OrderBookTests
+    OrderBookLib
+    GTest::gtest_main
+)
+
+# Include GoogleTest
+# gtest_discover_tests automatically discovers all TEST() macros in given test files
+include (GoogleTest)
+gtest_discover_tests(OrderBookTests)
+
+# OPTIONAL - Create an executable named main.cpp
+add_executable(LatencyAwareOrderBookSim main.cpp)
+target_link_libraries(LatencyAwareOrderBookSim OrderBookLib)
