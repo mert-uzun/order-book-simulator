@@ -95,7 +95,7 @@ void Strategy::on_market_update(long long timestamp, long long market_price) {
         place_ping_ask(timestamp);
     }
 
-    check_and_fill_pongs(current_market_price_ticks, timestamp);
+    check_and_fill_pongs(market_price, timestamp);
     
     /*
         Observe the market, update the values
@@ -114,6 +114,7 @@ void Strategy::on_fill(const Trade& trade) {
 
             if (remaining_qty == 0 && active_buy_order_id == trade.buyOrderId) {
                 active_buy_order_id = -1;
+                order_book.cancel_order(trade.buyOrderId);
             }
 
             latency_queue.schedule_event(ack_exec_time, LatencyQueue::ActionType::ORDER_SEND, [this, trade](long long exec_time) {
@@ -130,6 +131,7 @@ void Strategy::on_fill(const Trade& trade) {
     
             if (remaining_qty == 0 && active_sell_order_id == trade.sellOrderId) {
                 active_sell_order_id = -1;
+                order_book.cancel_order(trade.sellOrderId);
             }
 
             latency_queue.schedule_event(ack_exec_time, LatencyQueue::ActionType::ORDER_SEND, [this, trade](long long exec_time) {
@@ -156,6 +158,7 @@ void Strategy::check_and_fill_pongs(long long market_price, long long timestamp_
             
         latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::ACKNOWLEDGE_FILL, [this, highest_bid_pong_order_data](long long exec_time) {
             metrics.on_fill(highest_bid_pong_order_data.second.first, highest_bid_pong_order_data.first, exec_time, highest_bid_pong_order_data.second.second, false);
+            order_book.cancel_order(highest_bid_pong_order_data.second.first);
         });
     
         buy_pongs.pop();
@@ -166,6 +169,7 @@ void Strategy::check_and_fill_pongs(long long market_price, long long timestamp_
     
         latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::ACKNOWLEDGE_FILL, [this, lowest_sell_pong_order_data](long long exec_time) {
             metrics.on_fill(lowest_sell_pong_order_data.second.first, lowest_sell_pong_order_data.first, exec_time, lowest_sell_pong_order_data.second.second, false);
+            order_book.cancel_order(lowest_sell_pong_order_data.second.first);
         });
 
         sell_pongs.pop();
