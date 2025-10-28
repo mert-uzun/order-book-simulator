@@ -645,4 +645,11 @@ TEST(OrderBookTest, CancelOrderBasic) {
  */
 TEST(OrderBookTest, CancelNonExistentOrder) {
     OrderBook orderbook;
+
+    // Cancel a non existent order and check if it returns 1, indicating the order was not found. If it returns 0, this means somehow the order was successfully cancelled and there might be a bug.
+
+    EXPECT_EQ(orderbook.cancel_order(-1), 1)
+        << "Cancelling a non existent order should be realized in the cancel function and return 1, indicating the task was aborted.";
+    EXPECT_NE(orderbook.cancel_order(-1), 0)
+        << "Cancelling an order should return 0 only if the order was successfully found and deleted.";
 }
