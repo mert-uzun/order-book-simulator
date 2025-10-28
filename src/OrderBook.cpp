@@ -125,10 +125,11 @@ int OrderBook::cancel_order(long long orderId) {
     auto& iter_to_order = std::get<1>(iter_lookup->second);
 
     Order& order_to_delete = *iter_to_order;
+    long long order_price = order_to_delete.priceTick;
 
     auto& side = order_to_delete.isBuy ? buys : sells;
 
-    auto price_level = side.find(order_to_delete.priceTick);
+    auto price_level = side.find(order_price);
     if (price_level == side.end()){
         std::cout << "Error occured finding the price level or order to modify.";
         return 1;
@@ -136,6 +137,9 @@ int OrderBook::cancel_order(long long orderId) {
     auto& price_level_list = price_level->second;
 
     price_level_list.erase(iter_to_order);
+    if (price_level_list.empty()) {
+        side.erase(order_price);
+    }
     order_lookup.erase(iter_lookup);
 
     return 0;

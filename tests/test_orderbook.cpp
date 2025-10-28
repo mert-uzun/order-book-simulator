@@ -429,12 +429,12 @@ TEST(OrderBookTest, BestBidCalculation) {
 
 /**
     ============================================================
-    TEST 10: OrderMatchingBasicWithLimitBuyAndLimitSell
+    TEST 10: OrderMatchingWithLimitBuyAndLimitSell
     ============================================================
     PURPOSE: Adds a buy order and a sell order with matching price levels to current order book, and check if they match and the order book and trade log is updated correctly. Checks it with limit orders on both sides.
     ============================================================
  */
-TEST(OrderBookTest, OrderMatchingBasicWithLimitBuyAndLimitSell) {
+TEST(OrderBookTest, OrderMatchingWithLimitBuyAndLimitSell) {
     OrderBook orderbook;
 
     // ============================================================
@@ -584,15 +584,196 @@ TEST(OrderBookTest, OrderMatchingBasicWithLimitBuyAndLimitSell) {
 
 /**
     ============================================================
-    TEST 11: OrderMatchingBasicWithIOCOrders
+    TEST 11: OrderMatchingWithIOCOrders
     ============================================================
-    PURPOSE: Adds a limit buy order and an IOC sell order with matching price levels and check if they match and the order book and trade log is updated correctly. Checks it with limit orders on both sides.
+    PURPOSE: Adds limit buy orders and an IOC sell order with matching price levels and check if they match and the order book and trade log is updated correctly. Checks it with limit orders on both sides.
     ============================================================
  */
-// TEST(OrderBookTest, OrderMatchingBasicWithIOCOrders) {
-//     OrderBook orderbook;
+TEST(OrderBookTest, OrderMatchingWithIOCOrders) {
+    OrderBook orderbook;
 
-// }
+    // ============================================================
+    // FIRST SCENARIO - One limit buy then one IOC sell
+    // ============================================================
+
+    // First add one limit buy order and fill with one IOC sell order
+    long long limit_buy_order_id1 = orderbook.add_limit_order(true, 1000000, 10, 1);
+    long long ioc_sell_order_id1 = orderbook.add_IOC_order(false, 10, 2);
+
+    // Check orderbook.buys, order lookup, and trade log that these are updated correctly
+    EXPECT_EQ(orderbook.get_buys().find(1000000), orderbook.get_buys().end())
+        << "Resting buy order is still in the orderbook.buys after supposedly being filled by an IOC sell order.";
+    EXPECT_EQ(orderbook.get_order_lookup().find(limit_buy_order_id1), orderbook.get_order_lookup().end())
+        << "Resting buy order is still in the order lookup after supposedly being filled by an IOC sell order.";
+    EXPECT_TRUE(orderbook.get_sells().empty())
+        << "Sell orders are not empty after a limit buy order and an IOC sell order.";
+
+    // Check if the trade log is updated correctly
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().size(), 1)
+        << "Trade log size does not match. Result: " << orderbook.get_trade_log().get_trades().size() << ", expected: 1";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().buyOrderId, limit_buy_order_id1)
+        << "Trade buy order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().buyOrderId << ", expected: " << limit_buy_order_id1;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().sellOrderId, ioc_sell_order_id1)
+        << "Trade sell order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().sellOrderId << ", expected: " << ioc_sell_order_id1;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().priceTick, 1000000)
+        << "Trade price tick does not match. Result: " << orderbook.get_trade_log().get_trades().back().priceTick << ", expected: 1000000";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().quantity, 10)
+        << "Trade quantity does not match. Result: " << orderbook.get_trade_log().get_trades().back().quantity << ", expected: 10";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().timestampUs, 2)
+        << "Trade timestamp does not match. Result: " << orderbook.get_trade_log().get_trades().back().timestampUs << ", expected: 2";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().was_instant, true)
+        << "Trade 'was instant' flag does not match. Result: " << orderbook.get_trade_log().get_trades().back().was_instant << ", expected: true";
+
+        
+    // ============================================================
+    // SECOND SCENARIO - Two limit buys then one IOC sell, which fills the first limit buy fully and the second partially
+    // ============================================================
+
+    // First add two limit buy orders and fill with one IOC sell order
+    long long limit_buy_order_id2 = orderbook.add_limit_order(true, 1000001, 10, 3);
+    long long limit_buy_order_id3 = orderbook.add_limit_order(true, 1000002, 10, 4);
+    long long ioc_sell_order_id2 = orderbook.add_IOC_order(false, 15, 5);
+    
+    // Check orderbook.buys, order lookup, and trade log that these are updated correctly
+    EXPECT_EQ(orderbook.get_buys().find(1000001), orderbook.get_buys().end())
+        << "Resting buy order is still in the orderbook.buys after supposedly being filled by an IOC sell order.";
+    EXPECT_EQ(orderbook.get_order_lookup().find(limit_buy_order_id2), orderbook.get_order_lookup().end())
+        << "Resting buy order is still in the order lookup after supposedly being filled by an IOC sell order.";
+    EXPECT_NE(orderbook.get_buys().find(1000002), orderbook.get_buys().end())
+        << "Resting buy order is not found in the orderbook.buys after being only partiallyfilled by an IOC sell order.";
+    EXPECT_NE(orderbook.get_order_lookup().find(limit_buy_order_id3), orderbook.get_order_lookup().end())
+        << "Resting buy order is still in the order lookup after being only partially filled by an IOC sell order.";
+    EXPECT_TRUE(orderbook.get_sells().empty())
+        << "Sell orders are not empty after two limit buy orders and an IOC sell order.";
+
+    // Check trade log size and access to second and third trades in the trade log, ones the system just executed above
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().size(), 3);
+
+    auto& trades = orderbook.get_trade_log().get_trades();
+    auto iter_to_second_trade = std::next(trades.rbegin());
+    Trade& trade2 = *iter_to_second_trade;
+
+    auto iter_to_third_trade = trades.rbegin();
+    Trade& trade3 = *iter_to_third_trade;
+
+    // Check if the second and third trades are created correctly
+    EXPECT_EQ(trade2.buyOrderId, limit_buy_order_id2)
+        << "Second trade buy order iddoes not match. Result: " << trade2.buyOrderId << ", expected: " << limit_buy_order_id2;
+    EXPECT_EQ(trade2.sellOrderId, ioc_sell_order_id2)
+        << "Second trade sell order iddoes not match. Result: " << trade2.sellOrderId << ", expected: " << ioc_sell_order_id2;
+    EXPECT_EQ(trade2.priceTick, 1000001)
+        << "Second trade price tick does not match. Result: " << trade2.priceTick << ", expected: 1000001";
+    EXPECT_EQ(trade2.quantity, 10)
+        << "Second trade quantity does not match. Result: " << trade2.quantity << ", expected: 10";
+    EXPECT_EQ(trade2.timestampUs, 5)
+        << "Second trade timestamp does not match. Result: " << trade2.timestampUs << ", expected: 5";
+    EXPECT_EQ(trade2.was_instant, true)
+        << "Second trade 'was instant' flag does not match. Result: " << trade2.was_instant << ", expected: true";
+
+    EXPECT_EQ(trade3.buyOrderId, limit_buy_order_id3)
+        << "Third trade buy order iddoes not match. Result: " << trade3.buyOrderId << ", expected: " << limit_buy_order_id3;
+    EXPECT_EQ(trade3.sellOrderId, ioc_sell_order_id2)
+        << "Third trade sell order iddoes not match. Result: " << trade3.sellOrderId << ", expected: " << ioc_sell_order_id2;
+    EXPECT_EQ(trade3.priceTick, 1000002)
+        << "Third trade price tick does not match. Result: " << trade3.priceTick << ", expected: 1000001";
+    EXPECT_EQ(trade3.quantity, 5)
+        << "Third trade quantity does not match. Result: " << trade3.quantity << ", expected: 10";
+    EXPECT_EQ(trade3.timestampUs, 5)
+        << "Third trade timestamp does not match. Result: " << trade3.timestampUs << ", expected: 5";
+    EXPECT_EQ(trade3.was_instant, true)
+        << "Third trade 'was instant' flag does not match. Result: " << trade3.was_instant << ", expected: true";
+
+    // Cancel the remaining limit buy order for a clean setup for third scenario
+    orderbook.cancel_order(limit_buy_order_id3);
+
+    // ============================================================
+    // THIRD SCENARIO - One limit sell then one IOC buy
+    // ============================================================
+
+    // First add one limit sell order and fill with one IOC buy order
+    long long limit_sell_order_id1 = orderbook.add_limit_order(false, 1000003, 10, 6);
+    long long ioc_buy_order_id1 = orderbook.add_IOC_order(true, 10, 7);
+
+    // Check orderbook.sells, order lookup, and trade log that these are updated correctly
+    EXPECT_EQ(orderbook.get_sells().find(1000003), orderbook.get_sells().end())
+        << "Resting sell order is still in the orderbook.sells after supposedly being filled by an IOC buy order.";
+    EXPECT_EQ(orderbook.get_order_lookup().find(limit_sell_order_id1), orderbook.get_order_lookup().end())
+        << "Resting sell order is still in the order lookup after supposedly being filled by an IOC buy order.";
+    EXPECT_TRUE(orderbook.get_buys().empty())
+        << "Buy orders are not empty after a limit sell order and an IOC buy order.";
+
+    // Check if the trade log is updated correctly
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().size(), 4)
+        << "Trade log size does not match. Result: " << orderbook.get_trade_log().get_trades().size() << ", expected: 4";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().buyOrderId, ioc_buy_order_id1)
+        << "Trade buy order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().buyOrderId << ", expected: " << ioc_buy_order_id1;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().sellOrderId, limit_sell_order_id1)
+        << "Trade sell order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().sellOrderId << ", expected: " << limit_sell_order_id1;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().priceTick, 1000003)
+        << "Trade price tick does not match. Result: " << orderbook.get_trade_log().get_trades().back().priceTick << ", expected: 1000003";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().quantity, 10)
+        << "Trade quantity does not match. Result: " << orderbook.get_trade_log().get_trades().back().quantity << ", expected: 10";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().timestampUs, 7)
+        << "Trade timestamp does not match. Result: " << orderbook.get_trade_log().get_trades().back().timestampUs << ", expected: 7";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().was_instant, true)
+        << "Trade 'was instant' flag does not match. Result: " << orderbook.get_trade_log().get_trades().back().was_instant << ", expected: true";
+
+    // ============================================================
+    // FOURTH SCENARIO - Two limit sells then one IOC buy, which fills the first limit sellfully and the second partially
+    // ============================================================
+
+    // First add two limit sell orders and fill with one IOC buy order
+    long long limit_sell_order_id2 = orderbook.add_limit_order(false, 1000004, 10, 8);
+    long long limit_sell_order_id3 = orderbook.add_limit_order(false, 1000005, 10, 9);
+    long long ioc_buy_order_id2 = orderbook.add_IOC_order(true, 15, 10);
+
+    // Check orderbook.sells, order lookup, and trade log that these are updated correctly
+    EXPECT_EQ(orderbook.get_sells().find(1000004), orderbook.get_sells().end())
+        << "Resting sell order is still in the orderbook.sells after supposedly being filled by an IOC buy order.";
+    EXPECT_EQ(orderbook.get_order_lookup().find(limit_sell_order_id2), orderbook.get_order_lookup().end())
+        << "Resting sell order is still in the order lookup after supposedly being filled by an IOC buy order.";
+    EXPECT_NE(orderbook.get_sells().find(1000005), orderbook.get_sells().end())
+        << "Resting sell order is not found in the orderbook.sells after being only partially filled by an IOC buy order.";
+    EXPECT_NE(orderbook.get_order_lookup().find(limit_sell_order_id3), orderbook.get_order_lookup().end())
+        << "Resting sell order is not found in the order lookup after being only partially filled by an IOC buy order.";
+    EXPECT_TRUE(orderbook.get_buys().empty())
+        << "Buy orders are not empty after two limit sell orders and an IOC buy order.";
+
+    // Check trade log size and access to fifth and sixth trades in the trade log, ones the system just executed above
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().size(), 6);
+
+    auto iter_to_fifth_trade = std::next(trades.rbegin());
+    Trade& trade5 = *iter_to_fifth_trade;
+    auto iter_to_sixth_trade = trades.rbegin();
+    Trade& trade6 = *iter_to_sixth_trade;
+
+    // Check if the fifth and sixth trades are created correctly
+    EXPECT_EQ(trade5.buyOrderId, ioc_buy_order_id2)
+        << "Fifth trade buy order iddoes not match. Result: " << trade5.buyOrderId << ", expected: " << ioc_buy_order_id2;
+    EXPECT_EQ(trade5.sellOrderId, limit_sell_order_id2)
+        << "Fifth trade sell order iddoes not match. Result: " << trade5.sellOrderId << ", expected: " << limit_sell_order_id2;
+    EXPECT_EQ(trade5.priceTick, 1000004)
+        << "Fifth trade price tick does not match. Result: " << trade5.priceTick << ", expected: 1000004";
+    EXPECT_EQ(trade5.quantity, 10)
+        << "Fifth trade quantity does not match. Result: " << trade5.quantity << ", expected: 10";
+    EXPECT_EQ(trade5.timestampUs, 10)
+        << "Fifth trade timestamp does not match. Result: " << trade5.timestampUs << ", expected: 10";
+    EXPECT_EQ(trade5.was_instant, true)
+        << "Fifth trade 'was instant' flag does not match. Result: " << trade5.was_instant << ", expected: true";
+
+    EXPECT_EQ(trade6.buyOrderId, ioc_buy_order_id2)
+        << "Sixth trade buy order iddoes not match. Result: " << trade6.buyOrderId << ", expected: " << ioc_buy_order_id2;
+    EXPECT_EQ(trade6.sellOrderId, limit_sell_order_id3)
+        << "Sixth trade sell order iddoes not match. Result: " << trade6.sellOrderId << ", expected: " << limit_sell_order_id3;
+    EXPECT_EQ(trade6.priceTick, 1000005)
+        << "Sixth trade price tick does not match. Result: " << trade6.priceTick << ", expected: 1000005";
+    EXPECT_EQ(trade6.quantity, 5)
+        << "Sixth trade quantity does not match. Result: " << trade6.quantity << ", expected: 10";
+    EXPECT_EQ(trade6.timestampUs, 10)
+        << "Sixth trade timestamp does not match. Result: " << trade6.timestampUs << ", expected: 10";
+    EXPECT_EQ(trade6.was_instant, true)
+        << "Sixth trade 'was instant' flag does not match. Result: " << trade6.was_instant << ", expected: true";
+}
 
 /**
     ============================================================
