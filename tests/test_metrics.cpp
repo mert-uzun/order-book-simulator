@@ -216,21 +216,69 @@ TEST(MetricsTest, RealizedPnLCalculation) {
 */
 TEST(MetricsTest, UnrealizedPnLCalculation) {
     Metrics metrics;
+    metrics.set_config(0.001, 0, 0, Metrics::MarkingMethod::MID, 1000000);
 
+    // Initial state - no position
+    // =============================== //
     EXPECT_EQ(metrics.get_unrealized_pnl_ticks(), 0)
         << "Unrealized PnL should be 0 initially.";
-
+    // =============================== //
+    
     metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000, 5, false);
-    metrics.on_fill(1, 100, 1000, 5, false);
+    metrics.on_fill(1, 100, 1001, 5, false);
 
+    // Long position profit
+    // =============================== //
+    metrics.on_market_price_update(1002, 105, 107);
+
+    EXPECT_EQ(metrics.get_unrealized_pnl_ticks(), 5 * (106 - 100))
+        << "Unrealized PnL should be 5 * (106 - 100) = 30 after buying 5 shares at 100 and market price is 106.";
+    // =============================== //
+
+    // Long position loss
+    // =============================== //
+    metrics.on_market_price_update(1003, 90, 100);
+
+    EXPECT_EQ(metrics.get_unrealized_pnl_ticks(), 5 * (95 - 100))
+        << "Unrealized PnL should be 5 * (95 - 100) = -25 after market price moves to 95 from 100.";
+    // =============================== //
+    
     metrics.on_order_placed(2, Metrics::Side::BUYS, 100, 1001, 5, false);
     metrics.on_fill(2, 100, 1001, 5, false);
 
+    // Partial close of long position
+    // =============================== //
     metrics.on_order_placed(3, Metrics::Side::SELLS, 105, 1002, 5, false);
     metrics.on_fill(3, 105, 1002, 5, false);
 
+    EXPECT_EQ(metrics.get_unrealized_pnl_ticks(), 5 * (95 - 100))
+        << "Unrealized PnL should be 5 * (95 - 100) = -25 after selling 5 shares at market price 95.";
+    // =============================== //
+
+    // Long → Short flip
+    // =============================== //
     metrics.on_order_placed(4, Metrics::Side::SELLS, 110, 1003, 10, false);
     metrics.on_fill(4, 110, 1003, 10, false);
+
+    EXPECT_EQ(metrics.get_unrealized_pnl_ticks(), -5 * (95 - 110))
+        << "Unrealized PnL should be -5 * (95 - 110) = 75 after flipping position to -5 shares with avg entry price 110 when market price is 95.";
+    // =============================== //
+
+    // Short position profit
+    // =============================== //
+    metrics.on_market_price_update(1004, 105, 107);
+
+    EXPECT_EQ(metrics.get_unrealized_pnl_ticks(), -5 * (106 - 110))
+        << "Unrealized PnL should be -5 * (106 - 110) = 20 after market price moves to 106.";
+    // =============================== //
+
+    // Short position loss
+    // =============================== //
+    metrics.on_market_price_update(1005, 110, 120);
+
+    EXPECT_EQ(metrics.get_unrealized_pnl_ticks(), -5 * (115 - 110))
+        << "Unrealized PnL should be -5 * (115 - 110) = -25 after market price moves to 115.";
+    // =============================== //
 
     metrics.on_order_placed(5, Metrics::Side::SELLS, 110, 1004, 5, false);
     metrics.on_fill(5, 110, 1004, 5, false);
@@ -239,7 +287,15 @@ TEST(MetricsTest, UnrealizedPnLCalculation) {
     metrics.on_fill(6, 100, 1005, 5, false);
 
     metrics.on_order_placed(7, Metrics::Side::BUYS, 100, 1006, 10, false);
-    metrics.on_fill(7, 100, 1006, 10, false);    
+    metrics.on_fill(7, 100, 1006, 10, false);
+
+    // Short → Long flip
+    // =============================== //
+    metrics.on_market_price_update(1007, 105, 107);
+
+    EXPECT_EQ(metrics.get_unrealized_pnl_ticks(), 5 * (106 - 100))
+        << "Unrealized PnL should be 5 * (106 - 100) = 30 after position flips from negative to positive with avg entry price 100 and market price 106.";
+    // =============================== //
 }
 
 /**
