@@ -120,54 +120,90 @@ TEST(MetricsTest, RealizedPnLCalculation) {
         << "Realized PnL should be 0 initially.";
     
     metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000, 5, false);
+
+    EXPECT_EQ(metrics.get_realized_pnl_ticks(), 0)
+        << "Realized PnL doesn't change when order is placed but not filled.";
+    
     metrics.on_fill(1, 100, 1000, 5, false);
 
     EXPECT_EQ(metrics.get_realized_pnl_ticks(), 0)
         << "Realized PnL should be 0 after buying 5 shares at 100 when realized PnL was 0 for position 0 with avg entry price 0.";
 
     metrics.on_order_placed(2, Metrics::Side::BUYS, 100, 1001, 5, false);
+
+    EXPECT_EQ(metrics.get_realized_pnl_ticks(), 0)
+        << "Realized PnL doesn't change when order is placed but not filled.";
+
     metrics.on_fill(2, 100, 1001, 5, false);
 
     EXPECT_EQ(metrics.get_realized_pnl_ticks(), 0)
         << "Realized PnL should be 0 after buying 5 shares at 100 when realized PnL was 0 for position 5 with avg entry price 100.";
 
     metrics.on_order_placed(3, Metrics::Side::SELLS, 105, 1002, 3, false);
+
+    EXPECT_EQ(metrics.get_realized_pnl_ticks(), 0)
+        << "Realized PnL doesn't change when order is placed but not filled.";
+
     metrics.on_fill(3, 105, 1002, 3, false);
 
     EXPECT_EQ(metrics.get_realized_pnl_ticks(), 15)
         << "Realized PnL should be 15 after selling 3 shares at 105 when realized PnL was 0 for position 10 with avg entry price 100.";
 
     metrics.on_order_placed(31, Metrics::Side::SELLS, 95, 1002, 2, false);
+
+    EXPECT_EQ(metrics.get_realized_pnl_ticks(), 15)
+        << "Realized PnL doesn't change when order is placed but not filled.";
+
     metrics.on_fill(31, 95, 1002, 2, false);
 
     EXPECT_EQ(metrics.get_realized_pnl_ticks(), 5)
         << "Realized PnL should be 5 after selling 2 shares at 95 when realized PnL was 15 for position 7 with avg entry price 100.";
 
     metrics.on_order_placed(4, Metrics::Side::SELLS, 110, 1003, 10, false);
+
+    EXPECT_EQ(metrics.get_realized_pnl_ticks(), 5)
+        << "Realized PnL doesn't change when order is placed but not filled.";
+
     metrics.on_fill(4, 110, 1003, 10, false);
 
     EXPECT_EQ(metrics.get_realized_pnl_ticks(), 55)
         << "Realized PnL should be 55 after selling 10 shares at 110 when realized PnL was 5 for position 5 with avg entry price 100.";
 
     metrics.on_order_placed(5, Metrics::Side::SELLS, 110, 1004, 5, false);
+
+    EXPECT_EQ(metrics.get_realized_pnl_ticks(), 55)
+        << "Realized PnL doesn't change when order is placed but not filled.";
+
     metrics.on_fill(5, 110, 1004, 5, false);
 
     EXPECT_EQ(metrics.get_realized_pnl_ticks(), 55)
         << "Realized PnL should be 55 after selling 5 shares at 110 when realized PnL was 55 for position -5 with avg entry price 110.";
 
     metrics.on_order_placed(6, Metrics::Side::BUYS, 100, 1005, 3, false);
+
+    EXPECT_EQ(metrics.get_realized_pnl_ticks(), 55)
+        << "Realized PnL doesn't change when order is placed but not filled.";
+
     metrics.on_fill(6, 100, 1005, 3, false);
 
     EXPECT_EQ(metrics.get_realized_pnl_ticks(), 85)
         << "Realized PnL should be 85 after buying 3 shares at 100 when realized PnL was 55 for position -10 with avg entry price 110.";
 
     metrics.on_order_placed(61, Metrics::Side::BUYS, 120, 1005, 2, false);
+
+    EXPECT_EQ(metrics.get_realized_pnl_ticks(), 85)
+        << "Realized PnL doesn't change when order is placed but not filled.";
+
     metrics.on_fill(61, 120, 1005, 2, false);
 
     EXPECT_EQ(metrics.get_realized_pnl_ticks(), 65)
         << "Realized PnL should be 65 after buying 2 shares at 120 when realized PnL was 85 for position -7 with avg entry price 110.";
 
     metrics.on_order_placed(7, Metrics::Side::BUYS, 100, 1006, 10, false);
+
+    EXPECT_EQ(metrics.get_realized_pnl_ticks(), 65)
+        << "Realized PnL doesn't change when order is placed but not filled.";
+
     metrics.on_fill(7, 100, 1006, 10, false);
 
     EXPECT_EQ(metrics.get_realized_pnl_ticks(), 115)
@@ -180,6 +216,9 @@ TEST(MetricsTest, RealizedPnLCalculation) {
 */
 TEST(MetricsTest, UnrealizedPnLCalculation) {
     Metrics metrics;
+
+    EXPECT_EQ(metrics.get_unrealized_pnl_ticks(), 0)
+        << "Unrealized PnL should be 0 initially.";
 
     metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000, 5, false);
     metrics.on_fill(1, 100, 1000, 5, false);
