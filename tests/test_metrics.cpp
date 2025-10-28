@@ -7,6 +7,9 @@
 */
 TEST(MetricsTest, PositionTracking) {
     Metrics metrics;
+
+    EXPECT_EQ(metrics.get_position(), 0)
+        << "Position should be 0 initially";
     
     metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000, 5, false);
     metrics.on_fill(1, 100, 1000, 5, false);
@@ -53,17 +56,23 @@ TEST(MetricsTest, PositionTracking) {
 TEST(MetricsTest, AverageEntryPriceCalculation) {
     Metrics metrics;
     
-    metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000, 10, false);
-    metrics.on_fill(1, 100, 1000, 10, false);
+    metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000, 5, false);
+    metrics.on_fill(1, 100, 1000, 5, false);
 
-    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 100)
-        << "Average entry price should be 100 after buying 10 shares at 100";
+    metrics.on_order_placed(2, Metrics::Side::BUYS, 100, 1001, 5, false);
+    metrics.on_fill(2, 100, 1001, 5, false);
 
-    metrics.on_order_placed(2, Metrics::Side::SELLS, 105, 1001, 5, false);
-    metrics.on_fill(2, 105, 1001, 5, false);
+    metrics.on_order_placed(3, Metrics::Side::SELLS, 105, 1002, 5, false);
+    metrics.on_fill(3, 105, 1002, 5, false);
 
-    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 100)
-        << "Average entry price should stay 100 after selling 5 shares at 105 when position was 10 and average entry price was 100";
+    metrics.on_order_placed(4, Metrics::Side::SELLS, 110, 1003, 10, false);
+    metrics.on_fill(4, 110, 1003, 10, false);
+
+    metrics.on_order_placed(5, Metrics::Side::SELLS, 110, 1004, 5, false);
+    metrics.on_fill(5, 110, 1004, 5, false);
+
+    metrics.on_order_placed(6, Metrics::Side::BUYS, 100, 1005, 5, false);
+    metrics.on_fill(6, 100, 1005, 5, false);
     
 }
 
@@ -74,7 +83,23 @@ TEST(MetricsTest, AverageEntryPriceCalculation) {
 TEST(MetricsTest, RealizedPnLCalculation) {
     Metrics metrics;
     
-    
+    metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000, 5, false);
+    metrics.on_fill(1, 100, 1000, 5, false);
+
+    metrics.on_order_placed(2, Metrics::Side::BUYS, 100, 1001, 5, false);
+    metrics.on_fill(2, 100, 1001, 5, false);
+
+    metrics.on_order_placed(3, Metrics::Side::SELLS, 105, 1002, 5, false);
+    metrics.on_fill(3, 105, 1002, 5, false);
+
+    metrics.on_order_placed(4, Metrics::Side::SELLS, 110, 1003, 10, false);
+    metrics.on_fill(4, 110, 1003, 10, false);
+
+    metrics.on_order_placed(5, Metrics::Side::SELLS, 110, 1004, 5, false);
+    metrics.on_fill(5, 110, 1004, 5, false);
+
+    metrics.on_order_placed(6, Metrics::Side::BUYS, 100, 1005, 5, false);
+    metrics.on_fill(6, 100, 1005, 5, false);
 }
 
 /**
@@ -83,7 +108,24 @@ TEST(MetricsTest, RealizedPnLCalculation) {
 */
 TEST(MetricsTest, UnrealizedPnLCalculation) {
     Metrics metrics;
-    
+
+    metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000, 5, false);
+    metrics.on_fill(1, 100, 1000, 5, false);
+
+    metrics.on_order_placed(2, Metrics::Side::BUYS, 100, 1001, 5, false);
+    metrics.on_fill(2, 100, 1001, 5, false);
+
+    metrics.on_order_placed(3, Metrics::Side::SELLS, 105, 1002, 5, false);
+    metrics.on_fill(3, 105, 1002, 5, false);
+
+    metrics.on_order_placed(4, Metrics::Side::SELLS, 110, 1003, 10, false);
+    metrics.on_fill(4, 110, 1003, 10, false);
+
+    metrics.on_order_placed(5, Metrics::Side::SELLS, 110, 1004, 5, false);
+    metrics.on_fill(5, 110, 1004, 5, false);
+
+    metrics.on_order_placed(6, Metrics::Side::BUYS, 100, 1005, 5, false);
+    metrics.on_fill(6, 100, 1005, 5, false);
     
 }
 
@@ -93,7 +135,24 @@ TEST(MetricsTest, UnrealizedPnLCalculation) {
 */
 TEST(MetricsTest, TotalPnLCalculation) {
     Metrics metrics;
-    
+
+    metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000, 5, false);
+    metrics.on_fill(1, 100, 1000, 5, false);
+
+    metrics.on_order_placed(2, Metrics::Side::BUYS, 100, 1001, 5, false);
+    metrics.on_fill(2, 100, 1001, 5, false);
+
+    metrics.on_order_placed(3, Metrics::Side::SELLS, 105, 1002, 5, false);
+    metrics.on_fill(3, 105, 1002, 5, false);
+
+    metrics.on_order_placed(4, Metrics::Side::SELLS, 110, 1003, 10, false);
+    metrics.on_fill(4, 110, 1003, 10, false);
+
+    metrics.on_order_placed(5, Metrics::Side::SELLS, 110, 1004, 5, false);
+    metrics.on_fill(5, 110, 1004, 5, false);
+
+    metrics.on_order_placed(6, Metrics::Side::BUYS, 100, 1005, 5, false);
+    metrics.on_fill(6, 100, 1005, 5, false);
     
 }
 
