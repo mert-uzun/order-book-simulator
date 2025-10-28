@@ -45,13 +45,14 @@ FetchContent_MakeAvailable(googletest)
 # Enable testing
 enable_testing()
 
-# Create an executable with name OrderBookTests from the code test_orderbook_cpp
-add_executable(OrderBookTests
-    tests/test_orderbook.cpp    
+# Create an executable with name AllTests from the code test_orderbook_cpp
+add_executable(AllTests
+    tests/test_orderbook.cpp
+    tests/test_metrics.cpp
 )
 
 # Link the test executable with the library and GoogleTests framework + main
-target_link_libraries(OrderBookTests
+target_link_libraries(AllTests
     OrderBookLib
     GTest::gtest_main
 )
@@ -59,7 +60,7 @@ target_link_libraries(OrderBookTests
 # Include GoogleTest
 # gtest_discover_tests automatically discovers all TEST() macros in given test files
 include (GoogleTest)
-gtest_discover_tests(OrderBookTests)
+gtest_discover_tests(AllTests)
 
 # OPTIONAL - Create an executable named main.cpp
 add_executable(LatencyAwareOrderBookSim main.cpp)
