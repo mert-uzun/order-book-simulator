@@ -218,7 +218,147 @@ TEST(OrderBookTest, AddMultipleSellOrders) {
     EXPECT_EQ(order2.tsLastUpdateUs, 2)
         << "Last update timestamp does not match. Added: " << order2.tsLastUpdateUs << ", intended: 2";
 }
-/* 
+
+/**
+    ============================================================
+    TEST 6: AddMultipleBuyOrdersWithSamePrice
+    ============================================================
+    PURPOSE: Adds multiple buy orders with the same price to current order book, and check if they arrive to the market with correct data
+    ============================================================
+ */
+TEST(OrderBookTest, AddMultipleBuyOrdersWithSamePrice) {
+    OrderBook orderbook;
+
+    long long order_id1 = orderbook.add_limit_order(true, 1000000, 10, 1);
+    long long order_id2 = orderbook.add_limit_order(true, 1000000, 12, 2);
+
+    // Be sure orders are added to both data members of the orderbook
+    EXPECT_NE(order_id1, -1)
+        << "Order id is -1. Valid id is not generated, order was not added to the market.";
+    EXPECT_NE(orderbook.get_order_lookup().find(order_id1), orderbook.get_order_lookup().end())
+        << "Order id is not found in the order lookup. Order was not added to the order_lookup map.";
+    EXPECT_NE(order_id2, -1)
+        << "Order id is -1. Valid id is not generated, order was not added to the market.";
+    EXPECT_NE(orderbook.get_order_lookup().find(order_id2), orderbook.get_order_lookup().end())
+        << "Order id is not found in the order lookup. Order was not added to the order_lookup map.";
+    EXPECT_FALSE(orderbook.get_buys().empty())
+        << "Buy orders are empty. Orders were not added to the buys map.";
+
+    // Ensure best bid price is correct
+    EXPECT_EQ(orderbook.get_best_bid()->first, 1000000)
+        << "Best bid price does not match. Added: " << orderbook.get_best_bid()->first << ", intended: 1000000";
+    // Ensure only one price level is present in the orderbook
+    EXPECT_EQ(orderbook.get_buys().size(), 1)
+        << "Buy orders size does not match. Added: " << orderbook.get_buys().size() << ", intended: 1";
+    // Ensure two orders are at the same price level
+    EXPECT_EQ(orderbook.get_buys().find(1000000)->second.size(), 2)
+        << "Buy orders at price 1000000 size does not match. Added: " << orderbook.get_buys().find(1000000)->second.size() << ", intended: 2";
+
+    auto order_it1 = orderbook.get_order_lookup().find(order_id1)->second;
+    Order order1 = *std::get<1>(order_it1);
+    EXPECT_EQ(order1.id, order_id1)
+        << "Order ids does not match. Added: " << order1.id << ", intended: " << order_id1;
+    EXPECT_EQ(order1.isActive, true)
+        << "Order is not active. Added: " << order1.isActive << ", intended: true";
+    EXPECT_EQ(order1.isBuy, true)
+        << "Order is not a buy order. Added: " << order1.isBuy << ", intended: true";
+    EXPECT_EQ(order1.priceTick, 1000000)
+        << "Price tick does not match. Added: " << order1.priceTick << ", intended: 1000000";
+    EXPECT_EQ(order1.quantity, 10)
+        << "Quantity does not match. Added: " << order1.quantity << ", intended: 10";
+    EXPECT_EQ(order1.tsCreatedUs, 1)
+        << "Created timestamp does not match. Added: " << order1.tsCreatedUs << ", intended: 1";
+    EXPECT_EQ(order1.tsLastUpdateUs, 1)
+        << "Last update timestamp does not match. Added: " << order1.tsLastUpdateUs << ", intended: 1";
+
+    auto order_it2 = orderbook.get_order_lookup().find(order_id2)->second;
+    Order order2 = *std::get<1>(order_it2);
+    EXPECT_EQ(order2.id, order_id2)
+        << "Order ids does not match. Added: " << order2.id << ", intended: " << order_id2;
+    EXPECT_EQ(order2.isActive, true)
+        << "Order is not active. Added: " << order2.isActive << ", intended: true";
+    EXPECT_EQ(order2.isBuy, true)
+        << "Order is not a buy order. Added: " << order2.isBuy << ", intended: true";
+    EXPECT_EQ(order2.priceTick, 1000000)
+        << "Price tick does not match. Added: " << order2.priceTick << ", intended: 1000000";
+    EXPECT_EQ(order2.quantity, 12)
+        << "Quantity does not match. Added: " << order2.quantity << ", intended: 12";
+    EXPECT_EQ(order2.tsCreatedUs, 2)
+        << "Created timestamp does not match. Added: " << order2.tsCreatedUs << ", intended: 2";
+    EXPECT_EQ(order2.tsLastUpdateUs, 2)
+        << "Last update timestamp does not match. Added: " << order2.tsLastUpdateUs << ", intended: 2";
+}
+
+/**
+    ============================================================
+    TEST 7: AddMultipleSellOrdersWithSamePrice
+    ============================================================
+    PURPOSE: Adds multiple sell orders with the same price to current order book, and check if they arrive to the market with correct data
+    ============================================================
+ */
+TEST(OrderBookTest, AddMultipleSellOrdersWithSamePrice) {
+    OrderBook orderbook;
+
+    long long order_id1 = orderbook.add_limit_order(false, 1000000, 10, 1);
+    long long order_id2 = orderbook.add_limit_order(false, 1000000, 12, 2);
+
+    // Be sure orders are added to both data members of the orderbook
+    EXPECT_NE(order_id1, -1)
+        << "Order id is -1. Valid id is not generated, order was not added to the market.";
+    EXPECT_NE(orderbook.get_order_lookup().find(order_id1), orderbook.get_order_lookup().end())
+        << "Order id is not found in the order lookup. Order was not added to the order_lookup map.";
+    EXPECT_NE(order_id2, -1)
+        << "Order id is -1. Valid id is not generated, order was not added to the market.";
+    EXPECT_NE(orderbook.get_order_lookup().find(order_id2), orderbook.get_order_lookup().end())
+        << "Order id is not found in the order lookup. Order was not added to the order_lookup map.";
+    EXPECT_FALSE(orderbook.get_sells().empty())
+        << "Sell orders are empty. Orders were not added to the sells map.";
+
+    // Ensure best ask price is correct
+    EXPECT_EQ(orderbook.get_best_ask()->first, 1000000)
+        << "Best ask price does not match. Added: " << orderbook.get_best_ask()->first << ", intended: 1000000";
+    // Ensure only one price level is present in the orderbook
+    EXPECT_EQ(orderbook.get_sells().size(), 1)
+        << "Sell orders size does not match. Added: " << orderbook.get_sells().size() << ", intended: 1";
+    // Ensure two orders are at the same price level
+    EXPECT_EQ(orderbook.get_sells().find(1000000)->second.size(), 2)
+        << "Sell orders at price 1000000 size does not match. Added: " << orderbook.get_sells().find(1000000)->second.size() << ", intended: 2";
+
+    auto order_it1 = orderbook.get_order_lookup().find(order_id1)->second;
+    Order order1 = *std::get<1>(order_it1);
+    EXPECT_EQ(order1.id, order_id1)
+        << "Order ids does not match. Added: " << order1.id << ", intended: " << order_id1;
+    EXPECT_EQ(order1.isActive, true)
+        << "Order is not active. Added: " << order1.isActive << ", intended: true";
+    EXPECT_EQ(order1.isBuy, false)
+        << "Order is not a sell order. Added: " << order1.isBuy << ", intended: false";
+    EXPECT_EQ(order1.priceTick, 1000000)
+        << "Price tick does not match. Added: " << order1.priceTick << ", intended: 1000000";
+    EXPECT_EQ(order1.quantity, 10)
+        << "Quantity does not match. Added: " << order1.quantity << ", intended: 10";
+    EXPECT_EQ(order1.tsCreatedUs, 1)
+        << "Created timestamp does not match. Added: " << order1.tsCreatedUs << ", intended: 1";
+    EXPECT_EQ(order1.tsLastUpdateUs, 1)
+        << "Last update timestamp does not match. Added: " << order1.tsLastUpdateUs << ", intended: 1";
+
+    auto order_it2 = orderbook.get_order_lookup().find(order_id2)->second;
+    Order order2 = *std::get<1>(order_it2);
+    EXPECT_EQ(order2.id, order_id2)
+        << "Order ids does not match. Added: " << order2.id << ", intended: " << order_id2;
+    EXPECT_EQ(order2.isActive, true)
+        << "Order is not active. Added: " << order2.isActive << ", intended: true";
+    EXPECT_EQ(order2.isBuy, false)
+        << "Order is not a sell order. Added: " << order2.isBuy << ", intended: false";
+    EXPECT_EQ(order2.priceTick, 1000000)
+        << "Price tick does not match. Added: " << order2.priceTick << ", intended: 1000000";
+    EXPECT_EQ(order2.quantity, 12)
+        << "Quantity does not match. Added: " << order2.quantity << ", intended: 12";
+    EXPECT_EQ(order2.tsCreatedUs, 2)
+        << "Created timestamp does not match. Added: " << order2.tsCreatedUs << ", intended: 2";
+    EXPECT_EQ(order2.tsLastUpdateUs, 2)
+        << "Last update timestamp does not match. Added: " << order2.tsLastUpdateUs << ", intended: 2";
+}
+/*
     TESTS TO ADD
     
     - BestBidCalculation
