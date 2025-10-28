@@ -614,6 +614,26 @@ TEST(OrderBookTest, OrderMatchingBasicWithLimitBuyAndIOCSell) {
  */
 TEST(OrderBookTest, CancelOrderBasic) {
     OrderBook orderbook;
+
+    // Add one limit buy order and one limit sell order with non-matching price levels for them to rest in the market
+    long long order_id1 = orderbook.add_limit_order(true, 1000000, 10, 1);
+    long long order_id2 = orderbook.add_limit_order(false, 2000000, 10, 2);
+
+    // WE KNOW FROM PREVIOUS TESTS THAT THESE ORDERS ARE SUCCESSFULLY ADDED TO THE MARKET
+
+    // Cancel the buy order and check if it is successfully removed from the order book and the order lookup
+    orderbook.cancel_order(order_id1);
+    EXPECT_EQ(orderbook.get_order_lookup().find(order_id1), orderbook.get_order_lookup().end())
+        << "Order 1 is still in the order lookup after cancellation.";
+    EXPECT_EQ(orderbook.get_buys().find(1000000), orderbook.get_buys().end())
+        << "After the cancellation, buy order might still be in the orderbook.buys, or the list for the price level might not be successfully deleted after being emptied.";
+    
+    // Cancel the sell order and check if it is successfully removed from the order book and the order lookup
+    orderbook.cancel_order(order_id2);
+    EXPECT_EQ(orderbook.get_order_lookup().find(order_id2), orderbook.get_order_lookup().end())
+        << "Order 2 is still in the order lookup after cancellation.";
+    EXPECT_EQ(orderbook.get_sells().find(2000000), orderbook.get_sells().end())
+        << "After the cancellation, sell order might still be in the orderbook.sells, or the list for the price level might not be successfully deleted after being emptied.";
 }
 
 /**
