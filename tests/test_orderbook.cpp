@@ -42,19 +42,19 @@ TEST(OrderBookTest, AddSingleBuyOrder) {
     Order order = order_it->second.back();
 
     EXPECT_EQ(order.id, order_id)
-        << "Order ids does not match. Added: " << order.id << ", intended: " << order_id;
+        << "Order ids does not match. Result: " << order.id << ", expected: " << order_id;
     EXPECT_EQ(order.isActive, true)
-        << "Order is not active. Added: " << order.isActive << ", intended: true";
+        << "Order is not active. Result: " << order.isActive << ", expected: true";
     EXPECT_EQ(order.isBuy, true)
-        << "Order is not a buy order. Added: " << order.isBuy << ", intended: true";
+        << "Order is not a buy order. Result: " << order.isBuy << ", expected: true";
     EXPECT_EQ(order.priceTick, 1000000)
-        << "Price tick does not match. Added: " << order.priceTick << ", intended: 1000000";
+        << "Price tick does not match. Result: " << order.priceTick << ", expected: 1000000";
     EXPECT_EQ(order.quantity, 10)
-        << "Quantity does not match. Added: " << order.quantity << ", intended: 10";
+        << "Quantity does not match. Result: " << order.quantity << ", expected: 10";
     EXPECT_EQ(order.tsCreatedUs, 1)
-        << "Created timestamp does not match. Added: " << order.tsCreatedUs << ", intended: 1";
+        << "Created timestamp does not match. Result: " << order.tsCreatedUs << ", expected: 1";
     EXPECT_EQ(order.tsLastUpdateUs, 1)
-        << "Last update timestamp does not match. Added: " << order.tsLastUpdateUs << ", intended: 1";
+        << "Last update timestamp does not match. Result: " << order.tsLastUpdateUs << ", expected: 1";
 }
 
 /**
@@ -81,19 +81,19 @@ TEST(OrderBookTest, AddSingleSellOrder) {
     Order order = order_it->second.back();
 
     EXPECT_EQ(order.id, order_id)
-        << "Order ids does not match. Added: " << order.id << ", intended: " << order_id;
+        << "Order ids does not match. Result: " << order.id << ", expected: " << order_id;
     EXPECT_EQ(order.isActive, true)
-        << "Order is not active. Added: " << order.isActive << ", intended: true";
+        << "Order is not active. Result: " << order.isActive << ", expected: true";
     EXPECT_EQ(order.isBuy, false)
-        << "Order is not a sell order. Added: " << order.isBuy << ", intended: false";
+        << "Order is not a sell order. Result: " << order.isBuy << ", expected: false";
     EXPECT_EQ(order.priceTick, 1000000)
-        << "Price tick does not match. Added: " << order.priceTick << ", intended: 1000000";
+        << "Price tick does not match. Result: " << order.priceTick << ", expected: 1000000";
     EXPECT_EQ(order.quantity, 10)
-        << "Quantity does not match. Added: " << order.quantity << ", intended: 10";
+        << "Quantity does not match. Result: " << order.quantity << ", expected: 10";
     EXPECT_EQ(order.tsCreatedUs, 1)
-        << "Created timestamp does not match. Added: " << order.tsCreatedUs << ", intended: 1";
+        << "Created timestamp does not match. Result: " << order.tsCreatedUs << ", expected: 1";
     EXPECT_EQ(order.tsLastUpdateUs, 1)
-        << "Last update timestamp does not match. Added: " << order.tsLastUpdateUs << ", intended: 1";
+        << "Last update timestamp does not match. Result: " << order.tsLastUpdateUs << ", expected: 1";
 }
 
 /**
@@ -124,37 +124,37 @@ TEST(OrderBookTest, AddMultipleBuyOrders) {
     Order order1 = *std::get<1>(order_it1);
 
     EXPECT_EQ(order1.id, order_id1)
-        << "Order ids does not match. Added: " << order1.id << ", intended: " << order_id1;
+        << "Order ids does not match. Result: " << order1.id << ", expected: " << order_id1;
     EXPECT_EQ(order1.isActive, true)
-        << "Order is not active. Added: " << order1.isActive << ", intended: true";
+        << "Order is not active. Result: " << order1.isActive << ", expected: true";
     EXPECT_EQ(order1.isBuy, true)
-        << "Order is not a buy order. Added: " << order1.isBuy << ", intended: true";
+        << "Order is not a buy order. Result: " << order1.isBuy << ", expected: true";
     EXPECT_EQ(order1.priceTick, 1000000)
-        << "Price tick does not match. Added: " << order1.priceTick << ", intended: 1000000";
+        << "Price tick does not match. Result: " << order1.priceTick << ", expected: 1000000";
     EXPECT_EQ(order1.quantity, 10)
-        << "Quantity does not match. Added: " << order1.quantity << ", intended: 10";
+        << "Quantity does not match. Result: " << order1.quantity << ", expected: 10";
     EXPECT_EQ(order1.tsCreatedUs, 1)
-        << "Created timestamp does not match. Added: " << order1.tsCreatedUs << ", intended: 1";
+        << "Created timestamp does not match. Result: " << order1.tsCreatedUs << ", expected: 1";
     EXPECT_EQ(order1.tsLastUpdateUs, 1)
-        << "Last update timestamp does not match. Added: " << order1.tsLastUpdateUs << ", intended: 1";
+        << "Last update timestamp does not match. Result: " << order1.tsLastUpdateUs << ", expected: 1";
 
     auto order_it2 = orderbook.get_order_lookup().find(order_id2)->second;
     Order order2 = *std::get<1>(order_it2);
 
     EXPECT_EQ(order2.id, order_id2)
-        << "Order ids does not match. Added: " << order2.id << ", intended: " << order_id2;
+        << "Order ids does not match. Result: " << order2.id << ", expected: " << order_id2;
     EXPECT_EQ(order2.isActive, true)
-        << "Order is not active. Added: " << order2.isActive << ", intended: true";
+        << "Order is not active. Result: " << order2.isActive << ", expected: true";
     EXPECT_EQ(order2.isBuy, true)
-        << "Order is not a buy order. Added: " << order2.isBuy << ", intended: true";
+        << "Order is not a buy order. Result: " << order2.isBuy << ", expected: true";
     EXPECT_EQ(order2.priceTick, 999999)
-        << "Price tick does not match. Added: " << order2.priceTick << ", intended: 999999";
+        << "Price tick does not match. Result: " << order2.priceTick << ", expected: 999999";
     EXPECT_EQ(order2.quantity, 12)
-        << "Quantity does not match. Added: " << order2.quantity << ", intended: 12";
+        << "Quantity does not match. Result: " << order2.quantity << ", expected: 12";
     EXPECT_EQ(order2.tsCreatedUs, 2)
-        << "Created timestamp does not match. Added: " << order2.tsCreatedUs << ", intended: 2";
+        << "Created timestamp does not match. Result: " << order2.tsCreatedUs << ", expected: 2";
     EXPECT_EQ(order2.tsLastUpdateUs, 2)
-        << "Last update timestamp does not match. Added: " << order2.tsLastUpdateUs << ", intended: 2";
+        << "Last update timestamp does not match. Result: " << order2.tsLastUpdateUs << ", expected: 2";
 }
 
 /**
@@ -186,37 +186,37 @@ TEST(OrderBookTest, AddMultipleSellOrders) {
     Order order1 = *std::get<1>(order_it1);
 
     EXPECT_EQ(order1.id, order_id1)
-        << "Order ids does not match. Added: " << order1.id << ", intended: " << order_id1;
+        << "Order ids does not match. Result: " << order1.id << ", expected: " << order_id1;
     EXPECT_EQ(order1.isActive, true)
-        << "Order is not active. Added: " << order1.isActive << ", intended: true";
+        << "Order is not active. Result: " << order1.isActive << ", expected: true";
     EXPECT_EQ(order1.isBuy, false)
-        << "Order is not a sell order. Added: " << order1.isBuy << ", intended: false";
+        << "Order is not a sell order. Result: " << order1.isBuy << ", expected: false";
     EXPECT_EQ(order1.priceTick, 1000000)
-        << "Price tick does not match. Added: " << order1.priceTick << ", intended: 1000000";
+        << "Price tick does not match. Result: " << order1.priceTick << ", expected: 1000000";
     EXPECT_EQ(order1.quantity, 10)
-        << "Quantity does not match. Added: " << order1.quantity << ", intended: 10";
+        << "Quantity does not match. Result: " << order1.quantity << ", expected: 10";
     EXPECT_EQ(order1.tsCreatedUs, 1)
-        << "Created timestamp does not match. Added: " << order1.tsCreatedUs << ", intended: 1";
+        << "Created timestamp does not match. Result: " << order1.tsCreatedUs << ", expected: 1";
     EXPECT_EQ(order1.tsLastUpdateUs, 1)
-        << "Last update timestamp does not match. Added: " << order1.tsLastUpdateUs << ", intended: 1";
+        << "Last update timestamp does not match. Result: " << order1.tsLastUpdateUs << ", expected: 1";
 
     auto order_it2 = orderbook.get_order_lookup().find(order_id2)->second;
     Order order2 = *std::get<1>(order_it2);
 
     EXPECT_EQ(order2.id, order_id2)
-        << "Order ids does not match. Added: " << order2.id << ", intended: " << order_id2;
+        << "Order ids does not match. Result: " << order2.id << ", expected: " << order_id2;
     EXPECT_EQ(order2.isActive, true)
-        << "Order is not active. Added: " << order2.isActive << ", intended: true";
+        << "Order is not active. Result: " << order2.isActive << ", expected: true";
     EXPECT_EQ(order2.isBuy, false)
-        << "Order is not a sell order. Added: " << order2.isBuy << ", intended: false";
+        << "Order is not a sell order. Result: " << order2.isBuy << ", expected: false";
     EXPECT_EQ(order2.priceTick, 999999)
-        << "Price tick does not match. Added: " << order2.priceTick << ", intended: 999999";
+        << "Price tick does not match. Result: " << order2.priceTick << ", expected: 999999";
     EXPECT_EQ(order2.quantity, 12)
-        << "Quantity does not match. Added: " << order2.quantity << ", intended: 12";
+        << "Quantity does not match. Result: " << order2.quantity << ", expected: 12";
     EXPECT_EQ(order2.tsCreatedUs, 2)
-        << "Created timestamp does not match. Added: " << order2.tsCreatedUs << ", intended: 2";
+        << "Created timestamp does not match. Result: " << order2.tsCreatedUs << ", expected: 2";
     EXPECT_EQ(order2.tsLastUpdateUs, 2)
-        << "Last update timestamp does not match. Added: " << order2.tsLastUpdateUs << ", intended: 2";
+        << "Last update timestamp does not match. Result: " << order2.tsLastUpdateUs << ", expected: 2";
 }
 
 /**
@@ -246,47 +246,47 @@ TEST(OrderBookTest, AddMultipleBuyOrdersWithSamePrice) {
 
     // Ensure best bid price is correct
     EXPECT_EQ(orderbook.get_best_bid()->first, 1000000)
-        << "Best bid price does not match. Added: " << orderbook.get_best_bid()->first << ", intended: 1000000";
+        << "Best bid price does not match. Result: " << orderbook.get_best_bid()->first << ", expected: 1000000";
     // Ensure only one price level is present in the orderbook
     EXPECT_EQ(orderbook.get_buys().size(), 1)
-        << "Buy orders size does not match. Added: " << orderbook.get_buys().size() << ", intended: 1";
+        << "Buy orders size does not match. Result: " << orderbook.get_buys().size() << ", expected: 1";
     // Ensure two orders are at the same price level
     EXPECT_EQ(orderbook.get_buys().find(1000000)->second.size(), 2)
-        << "Buy orders at price 1000000 size does not match. Added: " << orderbook.get_buys().find(1000000)->second.size() << ", intended: 2";
+        << "Buy orders at price 1000000 size does not match. Result: " << orderbook.get_buys().find(1000000)->second.size() << ", expected: 2";
 
     auto order_it1 = orderbook.get_order_lookup().find(order_id1)->second;
     Order order1 = *std::get<1>(order_it1);
     EXPECT_EQ(order1.id, order_id1)
-        << "Order ids does not match. Added: " << order1.id << ", intended: " << order_id1;
+        << "Order ids does not match. Result: " << order1.id << ", expected: " << order_id1;
     EXPECT_EQ(order1.isActive, true)
-        << "Order is not active. Added: " << order1.isActive << ", intended: true";
+        << "Order is not active. Result: " << order1.isActive << ", expected: true";
     EXPECT_EQ(order1.isBuy, true)
-        << "Order is not a buy order. Added: " << order1.isBuy << ", intended: true";
+        << "Order is not a buy order. Result: " << order1.isBuy << ", expected: true";
     EXPECT_EQ(order1.priceTick, 1000000)
-        << "Price tick does not match. Added: " << order1.priceTick << ", intended: 1000000";
+        << "Price tick does not match. Result: " << order1.priceTick << ", expected: 1000000";
     EXPECT_EQ(order1.quantity, 10)
-        << "Quantity does not match. Added: " << order1.quantity << ", intended: 10";
+        << "Quantity does not match. Result: " << order1.quantity << ", expected: 10";
     EXPECT_EQ(order1.tsCreatedUs, 1)
-        << "Created timestamp does not match. Added: " << order1.tsCreatedUs << ", intended: 1";
+        << "Created timestamp does not match. Result: " << order1.tsCreatedUs << ", expected: 1";
     EXPECT_EQ(order1.tsLastUpdateUs, 1)
-        << "Last update timestamp does not match. Added: " << order1.tsLastUpdateUs << ", intended: 1";
+        << "Last update timestamp does not match. Result: " << order1.tsLastUpdateUs << ", expected: 1";
 
     auto order_it2 = orderbook.get_order_lookup().find(order_id2)->second;
     Order order2 = *std::get<1>(order_it2);
     EXPECT_EQ(order2.id, order_id2)
-        << "Order ids does not match. Added: " << order2.id << ", intended: " << order_id2;
+        << "Order ids does not match. Result: " << order2.id << ", expected: " << order_id2;
     EXPECT_EQ(order2.isActive, true)
-        << "Order is not active. Added: " << order2.isActive << ", intended: true";
+        << "Order is not active. Result: " << order2.isActive << ", expected: true";
     EXPECT_EQ(order2.isBuy, true)
-        << "Order is not a buy order. Added: " << order2.isBuy << ", intended: true";
+        << "Order is not a buy order. Result: " << order2.isBuy << ", expected: true";
     EXPECT_EQ(order2.priceTick, 1000000)
-        << "Price tick does not match. Added: " << order2.priceTick << ", intended: 1000000";
+        << "Price tick does not match. Result: " << order2.priceTick << ", expected: 1000000";
     EXPECT_EQ(order2.quantity, 12)
-        << "Quantity does not match. Added: " << order2.quantity << ", intended: 12";
+        << "Quantity does not match. Result: " << order2.quantity << ", expected: 12";
     EXPECT_EQ(order2.tsCreatedUs, 2)
-        << "Created timestamp does not match. Added: " << order2.tsCreatedUs << ", intended: 2";
+        << "Created timestamp does not match. Result: " << order2.tsCreatedUs << ", expected: 2";
     EXPECT_EQ(order2.tsLastUpdateUs, 2)
-        << "Last update timestamp does not match. Added: " << order2.tsLastUpdateUs << ", intended: 2";
+        << "Last update timestamp does not match. Result: " << order2.tsLastUpdateUs << ", expected: 2";
 }
 
 /**
@@ -316,47 +316,47 @@ TEST(OrderBookTest, AddMultipleSellOrdersWithSamePrice) {
 
     // Ensure best ask price is correct
     EXPECT_EQ(orderbook.get_best_ask()->first, 1000000)
-        << "Best ask price does not match. Added: " << orderbook.get_best_ask()->first << ", intended: 1000000";
+        << "Best ask price does not match. Result: " << orderbook.get_best_ask()->first << ", expected: 1000000";
     // Ensure only one price level is present in the orderbook
     EXPECT_EQ(orderbook.get_sells().size(), 1)
-        << "Sell orders size does not match. Added: " << orderbook.get_sells().size() << ", intended: 1";
+        << "Sell orders size does not match. Result: " << orderbook.get_sells().size() << ", expected: 1";
     // Ensure two orders are at the same price level
     EXPECT_EQ(orderbook.get_sells().find(1000000)->second.size(), 2)
-        << "Sell orders at price 1000000 size does not match. Added: " << orderbook.get_sells().find(1000000)->second.size() << ", intended: 2";
+        << "Sell orders at price 1000000 size does not match. Result: " << orderbook.get_sells().find(1000000)->second.size() << ", expected: 2";
 
     auto order_it1 = orderbook.get_order_lookup().find(order_id1)->second;
     Order order1 = *std::get<1>(order_it1);
     EXPECT_EQ(order1.id, order_id1)
-        << "Order ids does not match. Added: " << order1.id << ", intended: " << order_id1;
+        << "Order ids does not match. Result: " << order1.id << ", expected: " << order_id1;
     EXPECT_EQ(order1.isActive, true)
-        << "Order is not active. Added: " << order1.isActive << ", intended: true";
+        << "Order is not active. Result: " << order1.isActive << ", expected: true";
     EXPECT_EQ(order1.isBuy, false)
-        << "Order is not a sell order. Added: " << order1.isBuy << ", intended: false";
+        << "Order is not a sell order. Result: " << order1.isBuy << ", expected: false";
     EXPECT_EQ(order1.priceTick, 1000000)
-        << "Price tick does not match. Added: " << order1.priceTick << ", intended: 1000000";
+        << "Price tick does not match. Result: " << order1.priceTick << ", expected: 1000000";
     EXPECT_EQ(order1.quantity, 10)
-        << "Quantity does not match. Added: " << order1.quantity << ", intended: 10";
+        << "Quantity does not match. Result: " << order1.quantity << ", expected: 10";
     EXPECT_EQ(order1.tsCreatedUs, 1)
-        << "Created timestamp does not match. Added: " << order1.tsCreatedUs << ", intended: 1";
+        << "Created timestamp does not match. Result: " << order1.tsCreatedUs << ", expected: 1";
     EXPECT_EQ(order1.tsLastUpdateUs, 1)
-        << "Last update timestamp does not match. Added: " << order1.tsLastUpdateUs << ", intended: 1";
+        << "Last update timestamp does not match. Result: " << order1.tsLastUpdateUs << ", expected: 1";
 
     auto order_it2 = orderbook.get_order_lookup().find(order_id2)->second;
     Order order2 = *std::get<1>(order_it2);
     EXPECT_EQ(order2.id, order_id2)
-        << "Order ids does not match. Added: " << order2.id << ", intended: " << order_id2;
+        << "Order ids does not match. Result: " << order2.id << ", expected: " << order_id2;
     EXPECT_EQ(order2.isActive, true)
-        << "Order is not active. Added: " << order2.isActive << ", intended: true";
+        << "Order is not active. Result: " << order2.isActive << ", expected: true";
     EXPECT_EQ(order2.isBuy, false)
-        << "Order is not a sell order. Added: " << order2.isBuy << ", intended: false";
+        << "Order is not a sell order. Result: " << order2.isBuy << ", expected: false";
     EXPECT_EQ(order2.priceTick, 1000000)
-        << "Price tick does not match. Added: " << order2.priceTick << ", intended: 1000000";
+        << "Price tick does not match. Result: " << order2.priceTick << ", expected: 1000000";
     EXPECT_EQ(order2.quantity, 12)
-        << "Quantity does not match. Added: " << order2.quantity << ", intended: 12";
+        << "Quantity does not match. Result: " << order2.quantity << ", expected: 12";
     EXPECT_EQ(order2.tsCreatedUs, 2)
-        << "Created timestamp does not match. Added: " << order2.tsCreatedUs << ", intended: 2";
+        << "Created timestamp does not match. Result: " << order2.tsCreatedUs << ", expected: 2";
     EXPECT_EQ(order2.tsLastUpdateUs, 2)
-        << "Last update timestamp does not match. Added: " << order2.tsLastUpdateUs << ", intended: 2";
+        << "Last update timestamp does not match. Result: " << order2.tsLastUpdateUs << ", expected: 2";
 }
 
 /**
@@ -380,17 +380,17 @@ TEST(OrderBookTest, BestBidCalculation) {
 
     // WE KNOW ORDERS ARE SUCCESSFULLY ADDED TO THE ORDERBOOK FROM THE PREVIOUS TESTS, NOW WE NEED TO CHECK THE BEST BID PRICE
     EXPECT_EQ(orderbook.get_best_bid()->first, 1000000)
-        << "Best bid price does not match. Added: " << orderbook.get_best_bid()->first << ", prices entered: 1000000, 999999, 999998";
+        << "Best bid price does not match. Result: " << orderbook.get_best_bid()->first << ", prices entered: 1000000, 999999, 999998";
 
     // Ensure all three prices are present in the orderbook
     EXPECT_EQ(orderbook.get_buys().size(), 3)
-        << "Buy orders size does not match. Added: " << orderbook.get_buys().size() << ", intended: 3";
+        << "Buy orders size does not match. Result: " << orderbook.get_buys().size() << ", expected: 3";
     EXPECT_EQ(orderbook.get_buys().find(1000000)->second.size(), 2)
-        << "Buy orders at price 1000000 size does not match. Added: " << orderbook.get_buys().find(1000000)->second.size() << ", intended: 2";
+        << "Buy orders at price 1000000 size does not match. Result: " << orderbook.get_buys().find(1000000)->second.size() << ", expected: 2";
     EXPECT_EQ(orderbook.get_buys().find(999999)->second.size(), 2)
-        << "Buy orders at price 999999 size does not match. Added: " << orderbook.get_buys().find(999999)->second.size() << ", intended: 2";
+        << "Buy orders at price 999999 size does not match. Result: " << orderbook.get_buys().find(999999)->second.size() << ", expected: 2";
     EXPECT_EQ(orderbook.get_buys().find(999998)->second.size(), 2)
-        << "Buy orders at price 999998 size does not match. Added: " << orderbook.get_buys().find(999998)->second.size() << ", intended: 2";
+        << "Buy orders at price 999998 size does not match. Result: " << orderbook.get_buys().find(999998)->second.size() << ", expected: 2";
 }
 
 /**
@@ -414,24 +414,177 @@ TEST(OrderBookTest, BestBidCalculation) {
 
     // WE KNOW ORDERS ARE SUCCESSFULLY ADDED TO THE ORDERBOOK FROM THE PREVIOUS TESTS, NOW WE NEED TO CHECK THE BEST ASK PRICE
     EXPECT_EQ(orderbook.get_best_ask()->first, 999998)
-        << "Best ask price does not match. Added: " << orderbook.get_best_ask()->first << ", prices entered: 1000000, 999999, 999998";
+        << "Best ask price does not match. Result: " << orderbook.get_best_ask()->first << ", prices entered: 1000000, 999999, 999998";
 
     // Ensure all three prices are present in the orderbook
     EXPECT_EQ(orderbook.get_sells().size(), 3)
-        << "Sell orders size does not match. Added: " << orderbook.get_sells().size() << ", intended: 3";
+        << "Sell orders size does not match. Result: " << orderbook.get_sells().size() << ", expected: 3";
     EXPECT_EQ(orderbook.get_sells().find(999998)->second.size(), 2)
-        << "Sell orders at price 999998 size does not match. Added: " << orderbook.get_sells().find(999998)->second.size() << ", intended: 2";
+        << "Sell orders at price 999998 size does not match. Result: " << orderbook.get_sells().find(999998)->second.size() << ", expected: 2";
     EXPECT_EQ(orderbook.get_sells().find(999999)->second.size(), 2)
-        << "Sell orders at price 999999 size does not match. Added: " << orderbook.get_sells().find(999999)->second.size() << ", intended: 2";
+        << "Sell orders at price 999999 size does not match. Result: " << orderbook.get_sells().find(999999)->second.size() << ", expected: 2";
     EXPECT_EQ(orderbook.get_sells().find(1000000)->second.size(), 2)
-        << "Sell orders at price 1000000 size does not match. Added: " << orderbook.get_sells().find(1000000)->second.size() << ", intended: 2";
+        << "Sell orders at price 1000000 size does not match. Result: " << orderbook.get_sells().find(1000000)->second.size() << ", expected: 2";
 }
+
+/**
+    ============================================================
+    TEST 10: OrderMatchingBasicWithLimitBuyAndLimitSell
+    ============================================================
+    PURPOSE: Adds a buy order and a sell order with matching price levels to current order book, and check if they match and the order book and trade log is updated correctly. Checks it with limit orders on both sides.
+    ============================================================
+ */
+TEST(OrderBookTest, OrderMatchingBasicWithLimitBuyAndLimitSell) {
+    OrderBook orderbook;
+
+    // ============================================================
+    // FIRST MATCHING SCENARIO - First bid then ask
+    // ============================================================
+
+    // First, add a limit buy order and a limit sell order with matching price levels and check if they match and the order book is updated correctly
+    long long order_id11 = orderbook.add_limit_order(true, 1000000, 10, 11);
+    long long order_id12 = orderbook.add_limit_order(true, 999999, 10, 12);
+    long long order_id21 = orderbook.add_limit_order(false, 999999, 10, 21);
+
+    // Check if the sell and buy maps are updated correctly
+    EXPECT_EQ(orderbook.get_buys().find(1000000), orderbook.get_buys().end())
+        << "Buy orders at price level 1000000 are not erased after getting emptied.";
+    EXPECT_EQ(orderbook.get_sells().find(999999), orderbook.get_sells().end())
+        << "Sell orders at price level 999999 are not erased after getting emptied.";
+    EXPECT_NE(orderbook.get_buys().find(999999), orderbook.get_buys().end())
+        << "Buy orders at price level 999999 are erased without matching.";
+
+    // Check if the order lookup is updated correctly
+    EXPECT_EQ(orderbook.get_order_lookup().find(order_id11), orderbook.get_order_lookup().end())
+        << "Order 11 is still in the order lookup after matching.";
+    EXPECT_EQ(orderbook.get_order_lookup().find(order_id21), orderbook.get_order_lookup().end())
+        << "Order 21 is still in the order lookup after matching.";
+    EXPECT_NE(orderbook.get_order_lookup().find(order_id12), orderbook.get_order_lookup().end())
+        << "Order 12 is not found in the order lookup, but it shouldn't have been erased since it didn't match.";
+    
+    // Check if the trade log is updated correctly
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().size(), 1)
+        << "Trade log size does not match. Result: " << orderbook.get_trade_log().get_trades().size() << ", expected: 1";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().buyOrderId, order_id11)
+        << "Trade buy order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().buyOrderId << ", expected: " << order_id11;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().sellOrderId, order_id21)
+        << "Trade sell order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().sellOrderId << ", expected: " << order_id21;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().priceTick, 1000000)
+        << "Trade price tick does not match. Result: " << orderbook.get_trade_log().get_trades().back().priceTick << ", expected: 1000000";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().quantity, 10)
+        << "Trade quantity does not match. Result: " << orderbook.get_trade_log().get_trades().back().quantity << ", expected: 10";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().timestampUs, 21)
+        << "Trade timestamp does not match. Result: " << orderbook.get_trade_log().get_trades().back().timestampUs << ", expected: 21";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().was_instant, false)
+        << "Trade 'was instant' flag does not match. Result: " << orderbook.get_trade_log().get_trades().back().was_instant << ", expected: false";
+
+    // Adding a new sell order to trigger order12
+    long long order_id22 = orderbook.add_limit_order(false, 999998, 10, 22);
+
+    // Check if sell and buy maps are updated correctly after the second match
+    EXPECT_EQ(orderbook.get_buys().find(999999), orderbook.get_buys().end())
+        << "Buy orders at price 999999 are not erased after getting emptied.";
+    EXPECT_EQ(orderbook.get_sells().find(999998), orderbook.get_sells().end())
+        << "Sell orders at price 999998 are not erased after getting emptied.";
+
+    // Check if the order lookup is updated correctly after the second match
+    EXPECT_EQ(orderbook.get_order_lookup().find(order_id12), orderbook.get_order_lookup().end())
+        << "Order 12 is still in the order lookup after matching.";
+    EXPECT_EQ(orderbook.get_order_lookup().find(order_id22), orderbook.get_order_lookup().end())
+        << "Order 22 is still in the order lookup after matching.";
+
+    // Check if the trade log is updated correctly after the second match
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().size(), 2)
+        << "Trade log size does not match. Result: " << orderbook.get_trade_log().get_trades().size() << ", expected: 2";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().buyOrderId, order_id12)
+        << "Trade buy order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().buyOrderId << ", expected: " << order_id12;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().sellOrderId, order_id22)
+        << "Trade sell order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().sellOrderId << ", expected: " << order_id22;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().priceTick, 999999)
+        << "Trade price tick does not match. Result: " << orderbook.get_trade_log().get_trades().back().priceTick << ", expected: 999999";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().quantity, 10)
+        << "Trade quantity does not match. Result: " << orderbook.get_trade_log().get_trades().back().quantity << ", expected: 10";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().timestampUs, 22)
+        << "Trade timestamp does not match. Result: " << orderbook.get_trade_log().get_trades().back().timestampUs << ", expected: 22";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().was_instant, false)
+        << "Trade 'was instant' flag does not match. Result: " << orderbook.get_trade_log().get_trades().back().was_instant << ", expected: false";
+
+    // ============================================================
+    // SECOND MATCHING SCENARIO - First ask then bid
+    // ============================================================
+
+    // Second, add a limit buy order and an IOC sell order with matching price levels and check if they match and the order book is updated correctly
+    long long order_id31 = orderbook.add_limit_order(false, 1000000, 10, 31);
+    long long order_id32 = orderbook.add_limit_order(false, 1000001, 10, 32);
+    long long order_id41 = orderbook.add_limit_order(true, 1000001, 10, 41);
+
+    // Check if the sell and buy maps are updated correctly
+    EXPECT_EQ(orderbook.get_buys().find(1000001), orderbook.get_buys().end())
+        << "Buy orders at price 1000001 are not erased after getting emptied.";
+    EXPECT_EQ(orderbook.get_sells().find(1000000), orderbook.get_sells().end())
+        << "Sell orders at price 1000000 are not erased after getting emptied.";
+    EXPECT_NE(orderbook.get_sells().find(1000001), orderbook.get_sells().end())
+        << "Sell orders at price 1000001 are erased without matching.";
+
+    // Check if the order lookup is updated correctly
+    EXPECT_EQ(orderbook.get_order_lookup().find(order_id31), orderbook.get_order_lookup().end())
+        << "Order 31 is still in the order lookup after matching.";
+    EXPECT_EQ(orderbook.get_order_lookup().find(order_id41), orderbook.get_order_lookup().end())
+        << "Order 41 is still in the order lookup after matching.";
+    EXPECT_NE(orderbook.get_order_lookup().find(order_id32), orderbook.get_order_lookup().end())
+        << "Order 32 is not found in the order lookup, but it shouldn't have been erased since it didn't match.";
+    
+    // Check if the trade log is updated correctly
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().size(), 3)
+        << "Trade log size does not match. Result: " << orderbook.get_trade_log().get_trades().size() << ", expected: 3";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().buyOrderId, order_id41)
+        << "Trade buy order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().buyOrderId << ", expected: " << order_id41;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().sellOrderId, order_id31)
+        << "Trade sell order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().sellOrderId << ", expected: " << order_id31;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().priceTick, 1000000)
+        << "Trade price tick does not match. Result: " << orderbook.get_trade_log().get_trades().back().priceTick << ", expected: 1000000";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().quantity, 10)
+        << "Trade quantity does not match. Result: " << orderbook.get_trade_log().get_trades().back().quantity << ", expected: 10";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().timestampUs, 41)
+        << "Trade timestamp does not match. Result: " << orderbook.get_trade_log().get_trades().back().timestampUs << ", expected: 41";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().was_instant, false)
+        << "Trade 'was instant' flag does not match. Result: " << orderbook.get_trade_log().get_trades().back().was_instant << ", expected: false";
+
+    // Adding a new buy order to trigger order32
+    long long order_id42 = orderbook.add_limit_order(true, 1000002, 10, 42);
+
+    // Check if the sell and buy maps are updated correctly after the second match
+    EXPECT_EQ(orderbook.get_sells().find(1000001), orderbook.get_sells().end())
+        << "Sell orders at price 1000001 are not erased after getting emptied.";
+    EXPECT_EQ(orderbook.get_buys().find(1000002), orderbook.get_buys().end())
+        << "Buy orders at price 1000002 are not erased after getting emptied.";
+    
+    // Check if the order lookup is updated correctly after the second match
+    EXPECT_EQ(orderbook.get_order_lookup().find(order_id32), orderbook.get_order_lookup().end())
+        << "Order 32 is still in the order lookup after matching.";
+    EXPECT_EQ(orderbook.get_order_lookup().find(order_id42), orderbook.get_order_lookup().end())
+        << "Order 42 is still in the order lookup after matching.";
+    
+    // Check if the trade log is updated correctly after the second match
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().size(), 4)
+        << "Trade log size does not match. Result: " << orderbook.get_trade_log().get_trades().size() << ", expected: 4";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().buyOrderId, order_id42)
+        << "Trade buy order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().buyOrderId << ", expected: " << order_id42;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().sellOrderId, order_id32)
+        << "Trade sell order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().sellOrderId << ", expected: " << order_id32;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().priceTick, 1000001)
+        << "Trade price tick does not match. Result: " << orderbook.get_trade_log().get_trades().back().priceTick << ", expected: 1000001";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().quantity, 10)
+        << "Trade quantity does not match. Result: " << orderbook.get_trade_log().get_trades().back().quantity << ", expected: 10";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().timestampUs, 42)
+        << "Trade timestamp does not match. Result: " << orderbook.get_trade_log().get_trades().back().timestampUs << ", expected: 42";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().was_instant, false)
+        << "Trade 'was instant' flag does not match. Result: " << orderbook.get_trade_log().get_trades().back().was_instant << ", expected: false";
+}
+
 /*
     TESTS TO ADD
     
-    - BestBidCalculation
-    - BestAskCalculation
-    - OrderMatchingBasic
     - PartialFillScenario
     - MultipleOrdersAtSamePrice
     - CancelOrderBasic

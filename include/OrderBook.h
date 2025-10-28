@@ -25,9 +25,10 @@ class OrderBook {
         void modify_order(long long order_id, int new_quantity, long long timestamp);
         void snapshot();
 
-        std::map<long long, std::list<Order>> get_buys() const {return buys;}
-        std::map<long long, std::list<Order>> get_sells() const {return sells;}
+        std::map<long long, std::list<Order>>& get_buys() { return buys; }
+        std::map<long long, std::list<Order>>& get_sells() { return sells; }
         std::unordered_map<long long, std::tuple<long long, std::list<Order>::iterator>>& get_order_lookup() {
             return order_lookup;
         }
+        TradeLog& get_trade_log() { return trade_log; }
 };

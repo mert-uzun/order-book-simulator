@@ -52,7 +52,10 @@ long long OrderBook::add_limit_order(bool isBuy, long long priceTick, int quanti
                 orders_at_price.pop_front();    
             }
             if (new_order.quantity == 0) {
-                return -1; // Indicating that there was no entry to the book, but trades occured
+                if (orders_at_price.empty()) {
+                    opposite_side.erase(opposite_best_price);
+                }
+                return new_order_id;
             }
         }
 
@@ -84,7 +87,7 @@ int OrderBook::add_IOC_order(bool isBuy, int quantity, long long timestamp) {
         
         while (!orders_at_best_price.empty()) {
             Order& matched_order = orders_at_best_price.front();
-            long long matched_quantity = std::min(new_market_order.quantity, matched_order.quantity);
+            int matched_quantity = std::min(new_market_order.quantity, matched_order.quantity);
             new_market_order.quantity -= matched_quantity;
             matched_order.quantity -= matched_quantity;
             matched_order.tsLastUpdateUs = timestamp;
