@@ -582,12 +582,47 @@ TEST(OrderBookTest, OrderMatchingBasicWithLimitBuyAndLimitSell) {
         << "Trade 'was instant' flag does not match. Result: " << orderbook.get_trade_log().get_trades().back().was_instant << ", expected: false";
 }
 
-/*
-    TESTS TO ADD
-    
-    - PartialFillScenario
-    - MultipleOrdersAtSamePrice
-    - CancelOrderBasic
-    - CancelNonExistentOrder
-    
-*/
+/**
+    ============================================================
+    TEST 11: OrderMatchingBasicWithIOCOrders
+    ============================================================
+    PURPOSE: Adds a limit buy order and an IOC sell order with matching price levels and check if they match and the order book and trade log is updated correctly. Checks it with limit orders on both sides.
+    ============================================================
+ */
+TEST(OrderBookTest, OrderMatchingBasicWithIOCOrders) {
+    OrderBook orderbook;
+
+}
+
+/**
+    ============================================================
+    TEST 12: PartialFillScenario
+    ============================================================
+    PURPOSE: Tests the partial fill scenario with limit buy and IOC sell orders.
+    ============================================================
+ */
+TEST(OrderBookTest, OrderMatchingBasicWithLimitBuyAndIOCSell) {
+    OrderBook orderbook;
+}
+
+/**
+    ============================================================
+    TEST 13: CancelOrderBasic
+    ============================================================
+    PURPOSE: Tests the cancel order basic scenario with limit buy and limit sell orders.
+    ============================================================
+ */
+TEST(OrderBookTest, CancelOrderBasic) {
+    OrderBook orderbook;
+}
+
+/**
+    ============================================================
+    TEST 14: CancelNonExistentOrder
+    ============================================================
+    PURPOSE: Tests the cancel non existent order scenario with limit buy and limit sell orders.
+    ============================================================
+ */
+TEST(OrderBookTest, CancelNonExistentOrder) {
+    OrderBook orderbook;
+}
