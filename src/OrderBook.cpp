@@ -20,10 +20,16 @@ long long OrderBook::add_limit_order(bool isBuy, long long priceTick, int quanti
     auto& side = isBuy ? buys : sells;
     auto& opposite_side = isBuy ? sells : buys;
 
-    // Has matches in the market
-    while (!opposite_side.empty() && ((isBuy && priceTick >= get_best_ask()->first) || (!isBuy && priceTick <= get_best_bid()->first))) {
+    long long opposite_best_price;
+    // Has matches in the market     
+    while (!opposite_side.empty()) {
+        opposite_best_price= isBuy ? get_best_ask()->first : get_best_bid()->first;
+
+        if (!(isBuy ? priceTick >= opposite_best_price : priceTick <= opposite_best_price)) {
+            break;
+        }
+
         std::list<Order>& orders_at_price = isBuy ? get_best_ask()->second : get_best_bid()->second;
-        long long price_level = isBuy ? get_best_ask()->first : get_best_bid()->first;
 
         while (!orders_at_price.empty()) {
             Order& matched_order = orders_at_price.front();
@@ -35,10 +41,10 @@ long long OrderBook::add_limit_order(bool isBuy, long long priceTick, int quanti
             matched_order.tsLastUpdateUs = timestamp;
 
             if (isBuy) {
-                trade_log.add_trade(new_order.id, matched_order.id, price_level, matched_quantity, timestamp, false);
+                trade_log.add_trade(new_order.id, matched_order.id, opposite_best_price, matched_quantity, timestamp, false);
             }
             else {
-                trade_log.add_trade(matched_order.id, new_order.id, price_level, matched_quantity, timestamp, false);
+                trade_log.add_trade(matched_order.id, new_order.id, opposite_best_price, matched_quantity, timestamp, false);
             }
             
             if (matched_order.quantity == 0) {
@@ -50,7 +56,7 @@ long long OrderBook::add_limit_order(bool isBuy, long long priceTick, int quanti
             }
         }
 
-        opposite_side.erase(price_level);
+        opposite_side.erase(opposite_best_price);
     }
 
     // Has no match to trade OR exhausted the whole market, just hold in the market.
