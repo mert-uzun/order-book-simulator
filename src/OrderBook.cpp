@@ -75,9 +75,9 @@ long long OrderBook::add_limit_order(bool isBuy, long long priceTick, int quanti
     First check if orders exists at the best price level, then exhaust all the orders until IOC is satisfied, when its satisfied: return
         if its not satisfied & orders.empty(): remove this price level from the matching side and reset the loop
 
-    @return 0 if IOC order gets satisfied, 1 if IOC order exhausts all the opposite market
+    @return  order id of the IOC order
 */
-int OrderBook::add_IOC_order(bool isBuy, int quantity, long long timestamp) {
+long long OrderBook::add_IOC_order(bool isBuy, int quantity, long long timestamp) {
     Order new_market_order(isBuy, quantity, timestamp);
     auto& opposite_side = isBuy ? sells : buys;
     
@@ -105,14 +105,14 @@ int OrderBook::add_IOC_order(bool isBuy, int quantity, long long timestamp) {
                 
             }
             if (new_market_order.quantity == 0) {
-                return 0; // Indicating the IOC order is satisfied
+                return new_market_order.id;
             }
         }
 
         opposite_side.erase(current_best_price);
     }
 
-    return 1; // Indicating this order exhausted all the opposite market
+    return new_market_order.id;
 }
 
 int OrderBook::cancel_order(long long orderId) {

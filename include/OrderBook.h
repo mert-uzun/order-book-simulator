@@ -20,7 +20,7 @@ class OrderBook {
         long long add_limit_order(bool isBuy, long long priceTick, int quantity, long long timestamp);
         std::map<long long, std::list<Order>>::reverse_iterator get_best_bid();
         std::map<long long, std::list<Order>>::iterator get_best_ask();
-        int add_IOC_order(bool isBuy, int quantity, long long timestamp);
+        long long add_IOC_order(bool isBuy, int quantity, long long timestamp);
         int cancel_order(long long orderId);
         void modify_order(long long order_id, int new_quantity, long long timestamp);
         void snapshot();

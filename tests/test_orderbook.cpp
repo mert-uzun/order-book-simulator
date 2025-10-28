@@ -589,10 +589,10 @@ TEST(OrderBookTest, OrderMatchingBasicWithLimitBuyAndLimitSell) {
     PURPOSE: Adds a limit buy order and an IOC sell order with matching price levels and check if they match and the order book and trade log is updated correctly. Checks it with limit orders on both sides.
     ============================================================
  */
-TEST(OrderBookTest, OrderMatchingBasicWithIOCOrders) {
-    OrderBook orderbook;
+// TEST(OrderBookTest, OrderMatchingBasicWithIOCOrders) {
+//     OrderBook orderbook;
 
-}
+// }
 
 /**
     ============================================================
@@ -601,8 +601,68 @@ TEST(OrderBookTest, OrderMatchingBasicWithIOCOrders) {
     PURPOSE: Tests the partial fill scenario with limit buy and IOC sell orders.
     ============================================================
  */
-TEST(OrderBookTest, OrderMatchingBasicWithLimitBuyAndIOCSell) {
+TEST(OrderBookTest, PartialFillScenario) {
     OrderBook orderbook;
+
+    // Add a limit buy order and partially fill it with an IOC sell order
+    long long limit_buy_order_id = orderbook.add_limit_order(true, 1000000, 10, 1);
+    long long ioc_sell_order_id = orderbook.add_IOC_order(false, 5, 2);
+
+    // Check if the orderbook and order lookup is updated correctly
+    EXPECT_NE(orderbook.get_order_lookup().find(limit_buy_order_id), orderbook.get_order_lookup().end())
+        << "Limit buy order is not found in the order lookup after partial fill, but it shouldn't be erased.";
+    EXPECT_NE(orderbook.get_buys().find(1000000), orderbook.get_buys().end())
+        << "Limit buy order is not found in the orderbook.buys after partial fill, but it shouldn't be erased.";
+
+    // Check if remaining quantity is updated correctly
+    EXPECT_EQ(std::get<1>(orderbook.get_order_lookup().find(limit_buy_order_id)->second)->quantity, 5)
+        << "Remaining quantity does not match (limit buy / IOC sell). Result: " << std::get<1>(orderbook.get_order_lookup().find(limit_buy_order_id)->second)->quantity << ", expected: 5";
+
+    // Check if the trade log is updated correctly
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().size(), 1)
+        << "Trade log size does not match. Result: " << orderbook.get_trade_log().get_trades().size() << ", expected: 1";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().buyOrderId, limit_buy_order_id)
+        << "Trade buy order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().buyOrderId << ", expected: " << limit_buy_order_id;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().sellOrderId, ioc_sell_order_id)
+        << "Trade sell order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().sellOrderId << ", expected: " << ioc_sell_order_id;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().priceTick, 1000000)
+        << "Trade price tick does not match. Result: " << orderbook.get_trade_log().get_trades().back().priceTick << ", expected: 1000000";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().quantity, 5)
+        << "Trade quantity does not match. Result: " << orderbook.get_trade_log().get_trades().back().quantity << ", expected: 5";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().timestampUs, 2)
+        << "Trade timestamp does not match. Result: " << orderbook.get_trade_log().get_trades().back().timestampUs << ", expected: 2";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().was_instant, true)
+        << "Trade 'was instant' flag does not match. Result: " << orderbook.get_trade_log().get_trades().back().was_instant << ", expected: false";
+
+    // Add a new sell limit order with a non-matching price level with the resting buy order. Then add an IOC buy order to trigger the new limit sell order.
+    long long new_sell_order_id = orderbook.add_limit_order(false, 1000001, 10, 3);
+    long long ioc_buy_order_id = orderbook.add_IOC_order(true, 5, 4);
+
+    // Check if the orderbook and order lookup is updated correctly
+    EXPECT_NE(orderbook.get_order_lookup().find(new_sell_order_id), orderbook.get_order_lookup().end())
+        << "New sell order is not found in the order lookup after partial fill, but it shouldn't be erased.";
+    EXPECT_NE(orderbook.get_sells().find(1000001), orderbook.get_sells().end())
+        << "New sell order is not found in the orderbook.sells after partial fill, but it shouldn't be erased.";
+    
+    // Check if remaining quantity is updated correctly
+    EXPECT_EQ(std::get<1>(orderbook.get_order_lookup().find(new_sell_order_id)->second)->quantity, 5)
+        << "Remaining quantity does not match (limit sell / IOC buy). Result: " << std::get<1>(orderbook.get_order_lookup().find(new_sell_order_id)->second)->quantity << ", expected: 5";
+
+    // Check if the trade log is updated correctly
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().size(), 2)
+        << "Trade log size does not match. Result: " << orderbook.get_trade_log().get_trades().size() << ", expected: 2";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().buyOrderId, ioc_buy_order_id)
+        << "Trade buy order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().buyOrderId << ", expected: " << ioc_buy_order_id;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().sellOrderId, new_sell_order_id)
+        << "Trade sell order iddoes not match. Result: " << orderbook.get_trade_log().get_trades().back().sellOrderId << ", expected: " << new_sell_order_id;
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().priceTick, 1000001)
+        << "Trade price tick does not match. Result: " << orderbook.get_trade_log().get_trades().back().priceTick << ", expected: 1000001";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().quantity, 5)
+        << "Trade quantity does not match. Result: " << orderbook.get_trade_log().get_trades().back().quantity << ", expected: 5";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().timestampUs, 4)
+        << "Trade timestamp does not match. Result: " << orderbook.get_trade_log().get_trades().back().timestampUs << ", expected: 4";
+    EXPECT_EQ(orderbook.get_trade_log().get_trades().back().was_instant, true)
+        << "Trade 'was instant' flag does not match. Result: " << orderbook.get_trade_log().get_trades().back().was_instant << ", expected: false";
 }
 
 /**
