@@ -13,6 +13,8 @@ class LatencyQueue {
             std::function<void(long long time_to_execute)> callback;
 
             bool operator>(const Event& other) const;
+
+            Event(long long time_to_execute, std::function<void(long long time_to_execute)> callback) : time_to_execute(time_to_execute), callback(callback) {}
         };
 
             struct LatencyBoundaries {

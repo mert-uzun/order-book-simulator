@@ -9,8 +9,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find all header and source files
-file(GLOB_RECURCE SOURCES "src/*.cpp")
-file(GLOB_RECURCE HEADERS "include/*.h")
+file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE HEADERS "include/*.h")
 
 # Log the found source files
 message(STATUS "Found ${CMAKE_CURRENT_SOURCE_DIR}/src files")
@@ -32,7 +32,7 @@ include(FetchContent)
 # Tell CMake to download version 1.14.0 of GoogleTest
 FetchContent_Declare(
     googletest
-    GITHUB_REPOSITORY https://github.com/google/googletest.git
+    GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG v1.14.0
 )
 

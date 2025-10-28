@@ -42,3 +42,9 @@
 
 # VSCode settings
 .vscode/
+
+# Clangd settings
+.clangd
+
+# Build directory with all its contents
+build/

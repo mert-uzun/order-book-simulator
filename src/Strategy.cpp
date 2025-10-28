@@ -9,6 +9,8 @@ Strategy::Strategy(OrderBook& orderbook, long long quote_size, long long tick_of
                         quote_size(quote_size), tick_offset_from_mid(tick_offset), max_inventory(max_inv), cancel_threshold_ticks(cancel_threshold), cooldown_between_requotes(cooldown_between_requotes), 
                         active_buy_order_id(-1), active_sell_order_id(-1), last_pinged_mid_price_ticks(0), last_quote_time_us(0) {};
 
+Strategy::~Strategy() {}
+
 void Strategy::observe_the_market(long long timestamp_us, long long market_price) {
     latency_queue.schedule_event(timestamp_us, LatencyQueue::ActionType::MARKET_UPDATE, [this, market_price](long long exec_time) {
         best_bid_ticks = get_best_bid_ticks();
