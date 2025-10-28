@@ -9,44 +9,51 @@ TEST(MetricsTest, PositionTracking) {
     Metrics metrics;
 
     EXPECT_EQ(metrics.get_position(), 0)
-        << "Position should be 0 initially";
+        << "Position should be 0 initially.";
     
     metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000, 5, false);
     metrics.on_fill(1, 100, 1000, 5, false);
 
     EXPECT_EQ(metrics.get_position(), 10)
-        << "Position should be 5 after buying 5 shares at 100 when position was 0";
+        << "Position should be 5 after buying 5 shares at 100 when position was 0.";
 
     metrics.on_order_placed(2, Metrics::Side::BUYS, 100, 1001, 5, false);
     metrics.on_fill(2, 100, 1001, 5, false);
 
     
     EXPECT_EQ(metrics.get_position(), 10)
-        << "Position should be 10 after buying 5 shares at 100 when position was 5";
+        << "Position should be 10 after buying 5 shares at 100 when position was 5.";
 
     metrics.on_order_placed(3, Metrics::Side::SELLS, 105, 1002, 5, false);
     metrics.on_fill(3, 105, 1002, 5, false);
 
     EXPECT_EQ(metrics.get_position(), 5)
-        << "Position should be 5 after selling 5 shares at 105 when position was 10";
+        << "Position should be 5 after selling 5 shares at 105 when position was 10.";
 
     metrics.on_order_placed(4, Metrics::Side::SELLS, 110, 1003, 10, false);
     metrics.on_fill(4, 110, 1003, 10, false);
 
     EXPECT_EQ(metrics.get_position(), -5)
-        << "Position should be -5 after selling 10 shares at 110 when position was 5";
+        << "Position should be -5 after selling 10 shares at 110 when position was 5.";
 
     metrics.on_order_placed(5, Metrics::Side::SELLS, 110, 1004, 5, false);
     metrics.on_fill(5, 110, 1004, 5, false);
 
     EXPECT_EQ(metrics.get_position(), -10)
-        << "Position should be -10 after selling 5 shares at 110 when position was -5";
+        << "Position should be -10 after selling 5 shares at 110 when position was -5.";
 
     metrics.on_order_placed(6, Metrics::Side::BUYS, 100, 1005, 5, false);
     metrics.on_fill(6, 100, 1005, 5, false);
 
     EXPECT_EQ(metrics.get_position(), -5)
-        << "Position should be -5 after buying 5 shares at 100 when position was -10";
+        << "Position should be -5 after buying 5 shares at 100 when position was -10.";
+    
+    metrics.on_order_placed(7, Metrics::Side::BUYS, 100, 1006, 10, false);
+    metrics.on_fill(7, 100, 1006, 10, false);
+
+    EXPECT_EQ(metrics.get_position(), 5)
+        << "Position should be 5 after buying 10 shares at 100 when position was -5.";
+
 }
 
 /**
@@ -55,25 +62,51 @@ TEST(MetricsTest, PositionTracking) {
 */
 TEST(MetricsTest, AverageEntryPriceCalculation) {
     Metrics metrics;
-    
+
+    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 0)
+        << "Average entry price should be 0 initially.";
+
     metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000, 5, false);
     metrics.on_fill(1, 100, 1000, 5, false);
+
+    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 100)
+        << "Average entry price should be 100 after buying 5 shares at 100 when average entry price was 0 for position 0.";
 
     metrics.on_order_placed(2, Metrics::Side::BUYS, 100, 1001, 5, false);
     metrics.on_fill(2, 100, 1001, 5, false);
 
+    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 100)
+        << "Average entry price should stay 100 after buying 5 shares at 100 when average entry price was 100 for position 5.";
+
     metrics.on_order_placed(3, Metrics::Side::SELLS, 105, 1002, 5, false);
     metrics.on_fill(3, 105, 1002, 5, false);
+
+    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 100)
+        << "Sell shouldn't change average entry price when position is positive.";
 
     metrics.on_order_placed(4, Metrics::Side::SELLS, 110, 1003, 10, false);
     metrics.on_fill(4, 110, 1003, 10, false);
 
+    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 110)
+        << "Average entry price should adjust to new average value when flipping position from positive to negative.";
+
     metrics.on_order_placed(5, Metrics::Side::SELLS, 110, 1004, 5, false);
-    metrics.on_fill(5, 110, 1004, 5, false);
+    metrics.on_fill(5, 115, 1004, 5, false);
+
+    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 112.5)
+        << "Sell when position is negative should adjust average entry price to new average value.";
 
     metrics.on_order_placed(6, Metrics::Side::BUYS, 100, 1005, 5, false);
     metrics.on_fill(6, 100, 1005, 5, false);
-    
+
+    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 112.5)
+        << "Buy shouldn't change average entry price when position is negative.";
+
+    metrics.on_order_placed(7, Metrics::Side::BUYS, 100, 1006, 10, false);
+    metrics.on_fill(7, 100, 1006, 10, false);
+
+    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 100)
+        << "Average entry price should adjust to new average value when flipping position from negative to positive.";
 }
 
 /**
@@ -100,6 +133,9 @@ TEST(MetricsTest, RealizedPnLCalculation) {
 
     metrics.on_order_placed(6, Metrics::Side::BUYS, 100, 1005, 5, false);
     metrics.on_fill(6, 100, 1005, 5, false);
+
+    metrics.on_order_placed(7, Metrics::Side::BUYS, 100, 1006, 10, false);
+    metrics.on_fill(7, 100, 1006, 10, false);
 }
 
 /**
@@ -126,7 +162,9 @@ TEST(MetricsTest, UnrealizedPnLCalculation) {
 
     metrics.on_order_placed(6, Metrics::Side::BUYS, 100, 1005, 5, false);
     metrics.on_fill(6, 100, 1005, 5, false);
-    
+
+    metrics.on_order_placed(7, Metrics::Side::BUYS, 100, 1006, 10, false);
+    metrics.on_fill(7, 100, 1006, 10, false);    
 }
 
 /**
@@ -154,6 +192,8 @@ TEST(MetricsTest, TotalPnLCalculation) {
     metrics.on_order_placed(6, Metrics::Side::BUYS, 100, 1005, 5, false);
     metrics.on_fill(6, 100, 1005, 5, false);
     
+    metrics.on_order_placed(7, Metrics::Side::BUYS, 100, 1006, 10, false);
+    metrics.on_fill(7, 100, 1006, 10, false);
 }
 
 /**
