@@ -8,7 +8,15 @@
 TEST(MetricsTest, PositionTracking) {
     Metrics metrics;
     
+    metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000, 10, false);
+    metrics.on_fill(1, 100, 1000, 10, false);
     
+    EXPECT_EQ(metrics.get_position(), 10);
+
+    metrics.on_order_placed(2, Metrics::Side::SELLS, 105, 1001, 5, false);
+    metrics.on_fill(2, 105, 1001, 5, false);
+
+    EXPECT_EQ(metrics.get_position(), 5);
 }
 
 /**
