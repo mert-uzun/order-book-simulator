@@ -393,7 +393,39 @@ TEST(OrderBookTest, BestBidCalculation) {
         << "Buy orders at price 999998 size does not match. Added: " << orderbook.get_buys().find(999998)->second.size() << ", intended: 2";
 }
 
+/**
+    ============================================================
+    TEST 9: BestAskCalculation
+    ============================================================
+    PURPOSE: Adds multiple sell orders to current order book, and check if the best ask price is correct
+    ============================================================
+ */
+ TEST(OrderBookTest, BestAskCalculation) {
+    OrderBook orderbook;
 
+    long long order_id11 = orderbook.add_limit_order(false, 1000000, 11, 11);
+    long long order_id12 = orderbook.add_limit_order(false, 1000000, 12, 12);
+
+    long long order_id21 = orderbook.add_limit_order(false, 999999, 11, 21);
+    long long order_id22 = orderbook.add_limit_order(false, 999999, 12, 22);
+
+    long long order_id31 = orderbook.add_limit_order(false, 999998, 11, 31);
+    long long order_id32 = orderbook.add_limit_order(false, 999998, 12, 32);
+
+    // WE KNOW ORDERS ARE SUCCESSFULLY ADDED TO THE ORDERBOOK FROM THE PREVIOUS TESTS, NOW WE NEED TO CHECK THE BEST ASK PRICE
+    EXPECT_EQ(orderbook.get_best_ask()->first, 999998)
+        << "Best ask price does not match. Added: " << orderbook.get_best_ask()->first << ", prices entered: 1000000, 999999, 999998";
+
+    // Ensure all three prices are present in the orderbook
+    EXPECT_EQ(orderbook.get_sells().size(), 3)
+        << "Sell orders size does not match. Added: " << orderbook.get_sells().size() << ", intended: 3";
+    EXPECT_EQ(orderbook.get_sells().find(999998)->second.size(), 2)
+        << "Sell orders at price 999998 size does not match. Added: " << orderbook.get_sells().find(999998)->second.size() << ", intended: 2";
+    EXPECT_EQ(orderbook.get_sells().find(999999)->second.size(), 2)
+        << "Sell orders at price 999999 size does not match. Added: " << orderbook.get_sells().find(999999)->second.size() << ", intended: 2";
+    EXPECT_EQ(orderbook.get_sells().find(1000000)->second.size(), 2)
+        << "Sell orders at price 1000000 size does not match. Added: " << orderbook.get_sells().find(1000000)->second.size() << ", intended: 2";
+}
 /*
     TESTS TO ADD
     
