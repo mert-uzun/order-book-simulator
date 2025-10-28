@@ -27,4 +27,7 @@ class OrderBook {
 
         std::map<long long, std::list<Order>> get_buys() const {return buys;}
         std::map<long long, std::list<Order>> get_sells() const {return sells;}
+        std::unordered_map<long long, std::tuple<long long, std::list<Order>::iterator>>& get_order_lookup() {
+            return order_lookup;
+        }
 };
