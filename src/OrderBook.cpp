@@ -21,7 +21,7 @@ long long OrderBook::add_limit_order(bool isBuy, long long priceTick, int quanti
     auto& opposite_side = isBuy ? sells : buys;
 
     // Has matches in the market
-    while (!opposite_side.empty() && (isBuy && priceTick >= get_best_ask()->first) || (!isBuy && priceTick <= get_best_bid()->first)) {
+    while (!opposite_side.empty() && ((isBuy && priceTick >= get_best_ask()->first) || (!isBuy && priceTick <= get_best_bid()->first))) {
         std::list<Order>& orders_at_price = isBuy ? get_best_ask()->second : get_best_bid()->second;
         long long price_level = isBuy ? get_best_ask()->first : get_best_bid()->first;
 
