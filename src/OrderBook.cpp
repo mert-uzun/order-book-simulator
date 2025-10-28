@@ -105,6 +105,9 @@ long long OrderBook::add_IOC_order(bool isBuy, int quantity, long long timestamp
                 
             }
             if (new_market_order.quantity == 0) {
+                if (orders_at_best_price.empty()) {
+                    opposite_side.erase(current_best_price);
+                }
                 return new_market_order.id;
             }
         }

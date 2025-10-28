@@ -630,16 +630,16 @@ TEST(OrderBookTest, OrderMatchingWithIOCOrders) {
     // ============================================================
 
     // First add two limit buy orders and fill with one IOC sell order
-    long long limit_buy_order_id2 = orderbook.add_limit_order(true, 1000001, 10, 3);
-    long long limit_buy_order_id3 = orderbook.add_limit_order(true, 1000002, 10, 4);
+    long long limit_buy_order_id2 = orderbook.add_limit_order(true, 1000002, 10, 3);
+    long long limit_buy_order_id3 = orderbook.add_limit_order(true, 1000001, 10, 4);
     long long ioc_sell_order_id2 = orderbook.add_IOC_order(false, 15, 5);
     
     // Check orderbook.buys, order lookup, and trade log that these are updated correctly
-    EXPECT_EQ(orderbook.get_buys().find(1000001), orderbook.get_buys().end())
+    EXPECT_EQ(orderbook.get_buys().find(1000002), orderbook.get_buys().end())
         << "Resting buy order is still in the orderbook.buys after supposedly being filled by an IOC sell order.";
     EXPECT_EQ(orderbook.get_order_lookup().find(limit_buy_order_id2), orderbook.get_order_lookup().end())
         << "Resting buy order is still in the order lookup after supposedly being filled by an IOC sell order.";
-    EXPECT_NE(orderbook.get_buys().find(1000002), orderbook.get_buys().end())
+    EXPECT_NE(orderbook.get_buys().find(1000001), orderbook.get_buys().end())
         << "Resting buy order is not found in the orderbook.buys after being only partiallyfilled by an IOC sell order.";
     EXPECT_NE(orderbook.get_order_lookup().find(limit_buy_order_id3), orderbook.get_order_lookup().end())
         << "Resting buy order is still in the order lookup after being only partially filled by an IOC sell order.";
@@ -661,7 +661,7 @@ TEST(OrderBookTest, OrderMatchingWithIOCOrders) {
         << "Second trade buy order iddoes not match. Result: " << trade2.buyOrderId << ", expected: " << limit_buy_order_id2;
     EXPECT_EQ(trade2.sellOrderId, ioc_sell_order_id2)
         << "Second trade sell order iddoes not match. Result: " << trade2.sellOrderId << ", expected: " << ioc_sell_order_id2;
-    EXPECT_EQ(trade2.priceTick, 1000001)
+    EXPECT_EQ(trade2.priceTick, 1000002)
         << "Second trade price tick does not match. Result: " << trade2.priceTick << ", expected: 1000001";
     EXPECT_EQ(trade2.quantity, 10)
         << "Second trade quantity does not match. Result: " << trade2.quantity << ", expected: 10";
@@ -674,7 +674,7 @@ TEST(OrderBookTest, OrderMatchingWithIOCOrders) {
         << "Third trade buy order iddoes not match. Result: " << trade3.buyOrderId << ", expected: " << limit_buy_order_id3;
     EXPECT_EQ(trade3.sellOrderId, ioc_sell_order_id2)
         << "Third trade sell order iddoes not match. Result: " << trade3.sellOrderId << ", expected: " << ioc_sell_order_id2;
-    EXPECT_EQ(trade3.priceTick, 1000002)
+    EXPECT_EQ(trade3.priceTick, 1000001)
         << "Third trade price tick does not match. Result: " << trade3.priceTick << ", expected: 1000001";
     EXPECT_EQ(trade3.quantity, 5)
         << "Third trade quantity does not match. Result: " << trade3.quantity << ", expected: 10";
