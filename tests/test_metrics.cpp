@@ -2,8 +2,11 @@
 #include "../include/Metrics.h"
 
 /**
-    TEST 1: 
+    ============================================================
+    TEST 1: PositionTracking
+    ============================================================
     PURPOSE: Test if the position is tracked correctly when buy and sell orders are filled, considers reducing, increasing, and flipping positions
+    ============================================================
 */
 TEST(MetricsTest, PositionTracking) {
     Metrics metrics;
@@ -57,8 +60,11 @@ TEST(MetricsTest, PositionTracking) {
 }
 
 /**
+    ============================================================
     TEST 2: AverageEntryPriceCalculation
+    ============================================================
     PURPOSE: Test weighted average entry price calculation
+    ============================================================
 */
 TEST(MetricsTest, AverageEntryPriceCalculation) {
     Metrics metrics;
@@ -110,8 +116,11 @@ TEST(MetricsTest, AverageEntryPriceCalculation) {
 }
 
 /**
+    ============================================================
     TEST 3: RealizedPnLCalculation
+    ============================================================
     PURPOSE: Test realized PnL is calculated correctly when closing positions
+    ============================================================
 */
 TEST(MetricsTest, RealizedPnLCalculation) {
     Metrics metrics;
@@ -211,8 +220,11 @@ TEST(MetricsTest, RealizedPnLCalculation) {
 }
 
 /**
+    ============================================================
     TEST 4: UnrealizedPnLCalculation
+    ============================================================
     PURPOSE: Test unrealized PnL updates with market price changes
+    ============================================================
 */
 TEST(MetricsTest, UnrealizedPnLCalculation) {
     Metrics metrics;
@@ -300,8 +312,11 @@ TEST(MetricsTest, UnrealizedPnLCalculation) {
 }
 
 /**
+    ============================================================
     TEST 5: TotalPnLCalculation
+    ============================================================
     PURPOSE: Test total PnL = realized + unrealized
+    ============================================================
 */
 TEST(MetricsTest, TotalPnLCalculation) {
     Metrics metrics;
@@ -485,8 +500,11 @@ TEST(MetricsTest, TotalPnLCalculation) {
 }
 
 /**
+    ============================================================
     TEST 6: FeeAccounting
+    ============================================================
     PURPOSE: Test maker rebates and taker fees are tracked correctly
+    ============================================================
 */
 TEST(MetricsTest, FeeAccounting) {
     Metrics metrics;
@@ -576,8 +594,11 @@ TEST(MetricsTest, FeeAccounting) {
 
 
 /**
+    ============================================================
     TEST 7: FillRatioCalculation
+    ============================================================
     PURPOSE: Test fill ratio = resting_filled / resting_attempted
+    ============================================================
 */
 TEST(MetricsTest, FillRatioCalculation) {
     Metrics metrics;
@@ -674,8 +695,11 @@ TEST(MetricsTest, FillRatioCalculation) {
 }
 
 /**
+    ============================================================
     TEST 8: SharpeRatioCalculation
+    ============================================================
     PURPOSE: Test Sharpe ratio calculation with return series
+    ============================================================
 */
 TEST(MetricsTest, SharpeRatioCalculation) {
     Metrics metrics;
@@ -791,8 +815,11 @@ TEST(MetricsTest, SharpeRatioCalculation) {
 }
 
 /**
+    ============================================================
     TEST 9: VolatilityCalculation
+    ============================================================
     PURPOSE: Test volatility = standard deviation of returns
+    ============================================================
 */
 TEST(MetricsTest, VolatilityCalculation) {
     Metrics metrics;
@@ -868,8 +895,11 @@ TEST(MetricsTest, VolatilityCalculation) {
 }
 
 /**
+    ============================================================
     TEST 10: MaxDrawdownCalculation
+    ============================================================
     PURPOSE: Test max drawdown = largest peak-to-trough decline
+    ============================================================
 */
 TEST(MetricsTest, MaxDrawdownCalculation) {
     Metrics metrics;
@@ -950,8 +980,11 @@ TEST(MetricsTest, MaxDrawdownCalculation) {
 }
 
 /**
+    ============================================================
     TEST 11: OnFillOnNonExistentOrder
+    ============================================================
     PURPOSE: Test on_fill on non-existent order
+    ============================================================
 */
 TEST(MetricsTest, OnFillOnNonExistentOrder) {
     Metrics metrics;
