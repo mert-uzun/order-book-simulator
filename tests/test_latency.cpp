@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <iostream>
 #include "../include/LatencyQueue.h"
 
 /**
@@ -9,7 +10,40 @@
     ============================================================
 */
 TEST(LatencyQueueTest, DefaultInitialization) {
+    LatencyQueue latency_queue;
+
+    EXPECT_TRUE(latency_queue.is_empty())
+        << "Queue should be empty initially.";
+
+    EXPECT_EQ(latency_queue.get_latency_boundaries().order_send_min, 50)
+        << "Order send min should be 50 initially. Result: " << latency_queue.get_latency_boundaries().order_send_min << std::endl;
     
+    EXPECT_EQ(latency_queue.get_latency_boundaries().order_send_max, 200)
+        << "Order send max should be 200 initially. Result: " << latency_queue.get_latency_boundaries().order_send_max << std::endl;
+
+    EXPECT_EQ(latency_queue.get_latency_boundaries().cancel_min, 30)
+        << "Cancel min should be 30 initially. Result: " << latency_queue.get_latency_boundaries().cancel_min << std::endl;
+
+    EXPECT_EQ(latency_queue.get_latency_boundaries().cancel_max, 150)
+        << "Cancel max should be 150 initially. Result: " << latency_queue.get_latency_boundaries().cancel_max << std::endl;
+
+    EXPECT_EQ(latency_queue.get_latency_boundaries().modify_min, 40)
+        << "Modify min should be 40 initially. Result: " << latency_queue.get_latency_boundaries().modify_min << std::endl;
+
+    EXPECT_EQ(latency_queue.get_latency_boundaries().modify_max, 180)
+        << "Modify max should be 180 initially. Result: " << latency_queue.get_latency_boundaries().modify_max << std::endl;
+
+    EXPECT_EQ(latency_queue.get_latency_boundaries().acknowledge_fill_min, 100)
+        << "Acknowledge fill min should be 100 initially. Result: " << latency_queue.get_latency_boundaries().acknowledge_fill_min << std::endl;
+
+    EXPECT_EQ(latency_queue.get_latency_boundaries().acknowledge_fill_max, 400)
+        << "Acknowledge fill max should be 400 initially. Result: " << latency_queue.get_latency_boundaries().acknowledge_fill_max << std::endl;
+        
+    EXPECT_EQ(latency_queue.get_latency_boundaries().market_update_min, 50)
+        << "Market update min should be 50 initially. Result: " << latency_queue.get_latency_boundaries().market_update_min << std::endl;
+
+    EXPECT_EQ(latency_queue.get_latency_boundaries().market_update_max, 150)
+        << "Market update max should be 150 initially. Result: " << latency_queue.get_latency_boundaries().market_update_max << std::endl;
 }
 
 /**
