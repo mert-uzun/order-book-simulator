@@ -204,7 +204,15 @@ TEST(LatencyQueueTest, MultipleEventsInOrder) {
     ============================================================
 */
 TEST(LatencyQueueTest, ProcessBeforeEventTime) {
-    
+    LatencyQueue latency_queue;
+
+    // Schedule a task to throw an exception, we will check if that exception is thrown before that task's execution time.
+    latency_queue.schedule_event(1000000, LatencyQueue::ActionType::ORDER_SEND, [](long long exec_time) {
+        throw std::runtime_error("Test exception");
+    });
+
+    EXPECT_NO_THROW(latency_queue.process_until(1000000 + 49)) // 50 is the minimum default latency for an order send action
+        << "Scheduled event executes before its execution time via process.until.";
 }
 
 /**
