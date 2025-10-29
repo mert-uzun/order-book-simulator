@@ -140,6 +140,12 @@ void Metrics::on_order_cancelled(long long order_id, long long delete_timestamp_
 }
 
 void Metrics::on_fill(long long order_id_1, long long fill_price_per_share_ticks, long long fill_timestamp_us, int filled_quantity, bool was_instant) {
+    auto iter_order_1 = order_cache.find(order_id_1);
+    if (iter_order_1 == order_cache.end()) {
+        std::cout << "There is no such order with given id (" << order_id_1 << ") to fill in the cache.";
+        return;
+    }
+    
     gross_traded_qty += filled_quantity;
     last_trade_price_ticks = fill_price_per_share_ticks;
     
@@ -149,12 +155,6 @@ void Metrics::on_fill(long long order_id_1, long long fill_price_per_share_ticks
     }
     else {
         fees_ticks += config.taker_fee_per_share_ticks * filled_quantity;
-    }
-
-    auto iter_order_1 = order_cache.find(order_id_1);
-    if (iter_order_1 == order_cache.end()) {
-        std::cout << "There is no such order with given id (" << order_id_1 << ") to fill in the cache.";
-        return;
     }
 
     Side side = iter_order_1->second.side;

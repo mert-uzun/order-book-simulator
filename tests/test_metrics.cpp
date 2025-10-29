@@ -948,3 +948,44 @@ TEST(MetricsTest, MaxDrawdownCalculation) {
     EXPECT_EQ(metrics.get_max_drawdown_ticks(), -300)
         << "Final max drawdown should be -300 ticks (largest peak-to-trough decline).";
 }
+
+/**
+    TEST 11: OnFillOnNonExistentOrder
+    PURPOSE: Test on_fill on non-existent order
+*/
+TEST(MetricsTest, OnFillOnNonExistentOrder) {
+    Metrics metrics;
+    metrics.set_config(0.001, 0, 0, Metrics::MarkingMethod::MID, 1000000);
+
+    // Check initial state
+    EXPECT_EQ(metrics.get_position(), 0)
+        << "Position should be 0 initially.";
+    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 0)
+        << "Average entry price should be 0 initially.";
+    EXPECT_EQ(metrics.get_realized_pnl_ticks(), 0)
+        << "Realized PnL should be 0 initially.";
+    EXPECT_EQ(metrics.get_unrealized_pnl_ticks(), 0)
+        << "Unrealized PnL should be 0 initially.";
+    EXPECT_EQ(metrics.get_total_pnl_ticks(), 0)
+        << "Total PnL should be 0 initially.";
+    EXPECT_EQ(metrics.get_gross_traded_qty(), 0)
+        << "Gross traded quantity should be 0 initially.";
+
+    // Call on_fill on non-existent order
+    EXPECT_NO_THROW(metrics.on_fill(-1, 100, 1000, 10, false))
+        << "on_fill shouldn't throw an exception when given order is non-existent.";
+
+    // Check state after the on_fill call
+    EXPECT_EQ(metrics.get_position(), 0)
+        << "Position should still be 0 after an on_fill call on a non-existent order.";
+    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 0)
+        << "Average entry price should still be 0 after an on_fill call on a non-existent order.";
+    EXPECT_EQ(metrics.get_realized_pnl_ticks(), 0)
+        << "Realized PnL should still be 0 after an on_fill call on a non-existent order.";
+    EXPECT_EQ(metrics.get_unrealized_pnl_ticks(), 0)
+        << "Unrealized PnL should still be 0 after an on_fill call on a non-existent order.";
+    EXPECT_EQ(metrics.get_total_pnl_ticks(), 0)
+        << "Total PnL should still be 0 after an on_fill call on a non-existent order.";
+    EXPECT_EQ(metrics.get_gross_traded_qty(), 0)
+        << "Gross traded quantity should still be 0 after an on_fill call on a non-existent order.";
+}
