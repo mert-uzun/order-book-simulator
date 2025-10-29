@@ -789,8 +789,70 @@ TEST(MetricsTest, SharpeRatioCalculation) {
 */
 TEST(MetricsTest, VolatilityCalculation) {
     Metrics metrics;
+    metrics.set_config(0.001, 0, 0, Metrics::MarkingMethod::MID, 1000000);
+
+    // ========================================
+    // Create return series: [0, 100, 200, 150, -50, 100]
+    // Expected volatility = std dev = 84.98
+    // ========================================
     
+    // Bucket 0: PnL = 0
+    metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000000, 10, false);
+    metrics.on_fill(1, 100, 1000000, 10, false);
+    metrics.on_market_price_update(1000000, 100, 100);
     
+    // Bucket 1: PnL = 100 (return = +100)
+    metrics.on_order_placed(2, Metrics::Side::SELLS, 110, 2000000, 10, false);
+    metrics.on_fill(2, 110, 2000000, 10, false);
+    metrics.on_market_price_update(2000000, 110, 110);
+    
+    // Bucket 2: PnL = 300 (return = +200)
+    metrics.on_order_placed(3, Metrics::Side::BUYS, 110, 2500000, 20, false);
+    metrics.on_fill(3, 110, 2500000, 20, false);
+    metrics.on_order_placed(4, Metrics::Side::SELLS, 120, 3000000, 20, false);
+    metrics.on_fill(4, 120, 3000000, 20, false);
+    metrics.on_market_price_update(3000000, 120, 120);
+    
+    // Bucket 3: PnL = 450 (return = +150)
+    metrics.on_order_placed(5, Metrics::Side::BUYS, 120, 3500000, 15, false);
+    metrics.on_fill(5, 120, 3500000, 15, false);
+    metrics.on_order_placed(6, Metrics::Side::SELLS, 130, 4000000, 15, false);
+    metrics.on_fill(6, 130, 4000000, 15, false);
+    metrics.on_market_price_update(4000000, 130, 130);
+    
+    // Bucket 4: PnL = 400 (return = -50)
+    metrics.on_order_placed(7, Metrics::Side::BUYS, 130, 4500000, 10, false);
+    metrics.on_fill(7, 130, 4500000, 10, false);
+    metrics.on_order_placed(8, Metrics::Side::SELLS, 125, 5000000, 10, false);
+    metrics.on_fill(8, 125, 5000000, 10, false);
+    metrics.on_market_price_update(5000000, 125, 125);
+    
+    // Bucket 5: PnL = 500 (return = +100)
+    metrics.on_order_placed(9, Metrics::Side::BUYS, 125, 5500000, 10, false);
+    metrics.on_fill(9, 125, 5500000, 10, false);
+    metrics.on_order_placed(10, Metrics::Side::SELLS, 135, 6000000, 10, false);
+    metrics.on_fill(10, 135, 6000000, 10, false);
+    metrics.on_market_price_update(6000000, 135, 135);
+
+    // Finalize to calculate volatility
+    metrics.finalize(6000000);
+
+    // Expected volatility calculation:
+    // Returns: [0, 100, 200, 150, -50, 100]
+    // Mean = 500 / 6 = 83.333
+    // Deviations from mean: [-83.333, 16.667, 116.667, 66.667, -133.333, 16.667]
+    // Squared deviations: [6944.44, 277.78, 13611.11, 4444.44, 17777.78, 277.78]
+    // Variance = 43333.33 / 6 = 7222.22
+    // Volatility (Std Dev) = sqrt(7222.22) = 84.98
+    
+    double expected_volatility = std::sqrt(43333.33 / 6.0);
+    
+    EXPECT_NEAR(metrics.get_volatility(), expected_volatility, 0.01)
+        << "Volatility should be approximately " << expected_volatility << ", but result is " << metrics.get_volatility();
+
+    // Additional checks
+    EXPECT_GT(metrics.get_volatility(), 0)
+        << "Volatility should be positive for non-constant returns, but result is " << metrics.get_volatility();
 }
 
 /**
