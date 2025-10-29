@@ -581,8 +581,96 @@ TEST(MetricsTest, FeeAccounting) {
 */
 TEST(MetricsTest, FillRatioCalculation) {
     Metrics metrics;
+    metrics.set_config(0.001, 0, 0, Metrics::MarkingMethod::MID, 1000000);
+
+    // ========================================
+    // Case 1: No Orders Yet - Division by Zero Protection
+    // ========================================
+    EXPECT_EQ(metrics.get_fill_ratio(), 0.0)
+        << "Fill ratio should be 0 when no resting orders have been placed.";
+
+    // ========================================
+    // Case 2: IOC Orders Don't Count Toward Fill Ratio
+    // ========================================
+    metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000, 10, true); // IOC
+    metrics.on_fill(1, 100, 1000, 10, true);
     
+    EXPECT_EQ(metrics.get_fill_ratio(), 0.0)
+        << "Fill ratio should remain 0 as IOC orders don't count.";
+
+    // ========================================
+    // Case 3: Resting Order Fully Filled
+    // ========================================
+    metrics.on_order_placed(2, Metrics::Side::BUYS, 100, 1001, 20, false); // Resting
+    metrics.on_fill(2, 100, 1001, 20, false);
+    // resting_attempted = 20, resting_filled = 20
+    // Fill ratio = 20/20 = 1.0
     
+    EXPECT_EQ(metrics.get_fill_ratio(), 1.0)
+        << "Fill ratio should be 1.0 when all resting orders are filled.";
+
+    // ========================================
+    // Case 4: Resting Order Partially Filled Then Cancelled
+    // ========================================
+    metrics.on_order_placed(3, Metrics::Side::SELLS, 105, 1002, 30, false); // Resting
+    metrics.on_fill(3, 105, 1002, 10, false); // Partial fill: 10 of 30
+    metrics.on_order_cancelled(3, 1003); // Cancel remaining 20
+    // resting_attempted = 20 + 30 = 50
+    // resting_filled = 20 + 10 = 30
+    // Fill ratio = 30/50 = 0.6
+    
+    EXPECT_DOUBLE_EQ(metrics.get_fill_ratio(), 0.6)
+        << "Fill ratio should be 0.6 (30 filled out of 50 attempted).";
+
+    // ========================================
+    // Case 5: Multiple Fills on Same Order
+    // ========================================
+    metrics.on_order_placed(4, Metrics::Side::BUYS, 100, 1004, 40, false); // Resting
+    metrics.on_fill(4, 100, 1005, 15, false); // First partial fill
+    metrics.on_fill(4, 100, 1006, 15, false); // Second partial fill
+    metrics.on_fill(4, 100, 1007, 10, false); // Final fill (total = 40)
+    // resting_attempted = 50 + 40 = 90
+    // resting_filled = 30 + 15 + 15 + 10 = 70
+    // Fill ratio = 70/90 = 0.777...
+    
+    EXPECT_NEAR(metrics.get_fill_ratio(), 0.777777, 0.00001)
+        << "Fill ratio should be ~0.7778 after multiple partial fills.";
+
+    // ========================================
+    // Case 6: Resting Order Cancelled Without Any Fill
+    // ========================================
+    metrics.on_order_placed(5, Metrics::Side::SELLS, 110, 1008, 25, false); // Resting
+    metrics.on_order_cancelled(5, 1009); // Cancel without fill
+    // resting_attempted = 90 + 25 = 115
+    // resting_filled = 70 (unchanged)
+    // Fill ratio = 70/115 = 0.608...
+    
+    EXPECT_NEAR(metrics.get_fill_ratio(), 0.608696, 0.00001)
+        << "Fill ratio should drop to ~0.6087 after cancelled order.";
+
+    // ========================================
+    // Case 7: Mix of IOC and Resting
+    // ========================================
+    metrics.on_order_placed(6, Metrics::Side::BUYS, 100, 1010, 50, true); // IOC - doesn't count
+    metrics.on_fill(6, 100, 1010, 50, true);
+    
+    metrics.on_order_placed(7, Metrics::Side::BUYS, 100, 1011, 35, false); // Resting
+    metrics.on_fill(7, 100, 1011, 35, false);
+    // resting_attempted = 115 + 35 = 150
+    // resting_filled = 70 + 35 = 105
+    // Fill ratio = 105/150 = 0.7
+    
+    EXPECT_DOUBLE_EQ(metrics.get_fill_ratio(), 0.7)
+        << "Fill ratio should be 0.7 (IOC orders don't affect ratio).";
+
+    // ========================================
+    // Summary Check
+    // ========================================
+    // Total resting attempted: 20 + 30 + 40 + 25 + 35 = 150
+    // Total resting filled: 20 + 10 + 40 + 0 + 35 = 105
+    // IOC orders: 10 + 50 = 60 (not counted)
+    EXPECT_EQ(metrics.get_fill_ratio(), 0.7)
+        << "Final fill ratio should be: 70% of resting orders filled.";
 }
 
 /**
