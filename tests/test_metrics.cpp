@@ -861,6 +861,78 @@ TEST(MetricsTest, VolatilityCalculation) {
 */
 TEST(MetricsTest, MaxDrawdownCalculation) {
     Metrics metrics;
-    
-    
+    metrics.set_config(0.001, 0, 0, Metrics::MarkingMethod::MID, 1000000);
+
+    // ========================================
+    // Scenario: Track PnL with peaks and drawdowns
+    // PnL progression: 0 → 100 → 300 → 150 → 400 → 100
+    // Peak tracking:   0 → 100 → 300 → 300 → 400 → 400
+    // Drawdown:        0 → 0   → 0   → -150 → 0  → -300 (MAX)
+    // ========================================
+
+    // Initial state: PnL = 0, Peak = 0, Drawdown = 0
+    metrics.on_market_price_update(1000000, 100, 100);
+    EXPECT_EQ(metrics.get_max_drawdown_ticks(), 0)
+        << "Initial max drawdown should be 0.";
+
+    // Trade 1: PnL = 0 → 100
+    metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1500000, 10, false);
+    metrics.on_fill(1, 100, 1500000, 10, false);
+    metrics.on_order_placed(2, Metrics::Side::SELLS, 110, 2000000, 10, false);
+    metrics.on_fill(2, 110, 2000000, 10, false);
+    metrics.on_market_price_update(2000000, 110, 110);
+    // PnL = 100, Peak = 100, Drawdown = 100 - 100 = 0
+    EXPECT_EQ(metrics.get_max_drawdown_ticks(), 0)
+        << "No drawdown when continuously rising to new peak.";
+
+    // Trade 2: PnL = 100 → 300
+    metrics.on_order_placed(3, Metrics::Side::BUYS, 110, 2500000, 20, false);
+    metrics.on_fill(3, 110, 2500000, 20, false);
+    metrics.on_order_placed(4, Metrics::Side::SELLS, 120, 3000000, 20, false);
+    metrics.on_fill(4, 120, 3000000, 20, false);
+    metrics.on_market_price_update(3000000, 120, 120);
+    // PnL = 300, Peak = 300, Drawdown = 300 - 300 = 0
+    EXPECT_EQ(metrics.get_max_drawdown_ticks(), 0)
+        << "Still no drawdown at new peak of 300.";
+
+    // Trade 3: PnL = 300 → 150 (FIRST DRAWDOWN)
+    metrics.on_order_placed(5, Metrics::Side::BUYS, 120, 3500000, 15, false);
+    metrics.on_fill(5, 120, 3500000, 15, false);
+    metrics.on_order_placed(6, Metrics::Side::SELLS, 110, 4000000, 15, false);
+    metrics.on_fill(6, 110, 4000000, 15, false);
+    metrics.on_market_price_update(4000000, 110, 110);
+    // PnL = 150, Peak = 300, Drawdown = 150 - 300 = -150
+    EXPECT_EQ(metrics.get_max_drawdown_ticks(), -150)
+        << "Max drawdown should be -150 after dropping from 300 to 150.";
+
+    // Trade 4: PnL = 150 → 400 (NEW PEAK, recovery and beyond)
+    metrics.on_order_placed(7, Metrics::Side::BUYS, 110, 4500000, 25, false);
+    metrics.on_fill(7, 110, 4500000, 25, false);
+    metrics.on_order_placed(8, Metrics::Side::SELLS, 120, 5000000, 25, false);
+    metrics.on_fill(8, 120, 5000000, 25, false);
+    metrics.on_market_price_update(5000000, 120, 120);
+    // PnL = 400, Peak = 400, Drawdown = 400 - 400 = 0
+    // But max_drawdown stays at -150 (worst historical drawdown)
+    EXPECT_EQ(metrics.get_max_drawdown_ticks(), -150)
+        << "Max drawdown should remain -150 even after recovery to new peak.";
+
+    // Trade 5: PnL = 400 → 100 (LARGER DRAWDOWN)
+    metrics.on_order_placed(9, Metrics::Side::BUYS, 120, 5500000, 30, false);
+    metrics.on_fill(9, 120, 5500000, 30, false);
+    metrics.on_order_placed(10, Metrics::Side::SELLS, 110, 6000000, 30, false);
+    metrics.on_fill(10, 110, 6000000, 30, false);
+    metrics.on_market_price_update(6000000, 110, 110);
+    // PnL = 100, Peak = 400, Drawdown = 100 - 400 = -300
+    EXPECT_EQ(metrics.get_max_drawdown_ticks(), -300)
+        << "Max drawdown should update to -300 after dropping from 400 to 100.";
+
+    // ========================================
+    // Summary Check
+    // ========================================
+    // PnL progression: [0, 100, 300, 150, 400, 100]
+    // Peak progression: [0, 100, 300, 300, 400, 400]
+    // Drawdowns: [0, 0, 0, -150, 0, -300]
+    // Max drawdown = -300 ticks
+    EXPECT_EQ(metrics.get_max_drawdown_ticks(), -300)
+        << "Final max drawdown should be -300 ticks (largest peak-to-trough decline).";
 }
