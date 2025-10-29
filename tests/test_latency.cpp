@@ -97,13 +97,70 @@ TEST(LatencyQueueTest, CustomLatencyProfileSetting) {
 
 /**
     ============================================================
-    TEST 3: LatencyWithinBounds
+    TEST 3: GeneratedLatencyWithinBounds
     ============================================================
     PURPOSE: Verify computed latency is within min/max range using fixed boundaries
     ============================================================
 */
-TEST(LatencyQueueTest, LatencyWithinBounds) {
+TEST(LatencyQueueTest, GeneratedLatencyWithinBounds) {
+    LatencyQueue latency_queue;
+
+    // We know from TEST 1 that the default latency boundaries are:
+    // Order send min: 50, Order send max: 200
+    // Cancel min: 30, Cancel max: 150
+    // Modify min: 40, Modify max: 180
+    // Acknowledge fill min: 100, Acknowledge fill max: 400
+    // Market update min: 50, Market update max: 150
+
+    // Record latency value generated for each action type.
+
+    long long order_send_latency = latency_queue.compute_execution_latency(LatencyQueue::ActionType::ORDER_SEND);
+    long long cancel_latency = latency_queue.compute_execution_latency(LatencyQueue::ActionType::CANCEL);
+    long long modify_latency = latency_queue.compute_execution_latency(LatencyQueue::ActionType::MODIFY);
+    long long acknowledge_fill_latency = latency_queue.compute_execution_latency(LatencyQueue::ActionType::ACKNOWLEDGE_FILL);
+    long long market_update_latency = latency_queue.compute_execution_latency(LatencyQueue::ActionType::MARKET_UPDATE);
     
+    // Verify these latencies are within the bounds.
+
+    // ========================================
+    // ORDER SEND
+    // ========================================
+    EXPECT_GE(order_send_latency, 50)
+        << "Generated order send latency should be greater than or equal to minimum. Minimum: 50, Result: " << order_send_latency << std::endl;
+    EXPECT_LE(order_send_latency, 200)
+        << "Generated order send latency should be less than or equal to maximum. Maximum: 200, Result: " << order_send_latency << std::endl;
+
+    // ========================================
+    // CANCEL
+    // ========================================
+    EXPECT_GE(cancel_latency, 30)
+        << "Generated cancel latency should be greater than or equal to minimum. Minimum: 30, Result: " << cancel_latency << std::endl;
+    EXPECT_LE(cancel_latency, 150)
+        << "Generated cancel latency should be less than or equal to maximum. Maximum: 150, Result: " << cancel_latency << std::endl;
+
+    // ========================================
+    // MODIFY
+    // ========================================
+    EXPECT_GE(modify_latency, 40)
+        << "Generated modify latency should be greater than or equal to minimum. Minimum: 40, Result: " << modify_latency << std::endl;
+    EXPECT_LE(modify_latency, 180)
+        << "Generated modify latency should be less than or equal to maximum. Maximum: 180, Result: " << modify_latency << std::endl;
+    
+    // ========================================
+    // ACKNOWLEDGE FILL
+    // ========================================
+    EXPECT_GE(acknowledge_fill_latency, 100)
+        << "Generated acknowledge fill latency should be greater than or equal to minimum. Minimum: 100, Result: " << acknowledge_fill_latency << std::endl;
+    EXPECT_LE(acknowledge_fill_latency, 400)
+        << "Generated acknowledge fill latency should be less than or equal to maximum. Maximum: 400, Result: " << acknowledge_fill_latency << std::endl;
+    
+    // ========================================
+    // MARKET UPDATE
+    // ========================================
+    EXPECT_GE(market_update_latency, 50)
+        << "Generated market update latency should be greater than or equal to minimum. Minimum: 50, Result: " << market_update_latency << std::endl;
+    EXPECT_LE(market_update_latency, 150)
+        << "Generated market update latency should be less than or equal to maximum. Maximum: 150, Result: " << market_update_latency << std::endl;
 }
 
 /**
