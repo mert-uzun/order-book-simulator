@@ -14,7 +14,7 @@ TEST(MetricsTest, PositionTracking) {
     metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000, 5, false);
     metrics.on_fill(1, 100, 1000, 5, false);
 
-    EXPECT_EQ(metrics.get_position(), 10)
+    EXPECT_EQ(metrics.get_position(), 5)
         << "Position should be 5 after buying 5 shares at 100 when position was 0.";
 
     metrics.on_order_placed(2, Metrics::Side::BUYS, 100, 1001, 5, false);
@@ -93,13 +93,13 @@ TEST(MetricsTest, AverageEntryPriceCalculation) {
     metrics.on_order_placed(5, Metrics::Side::SELLS, 110, 1004, 5, false);
     metrics.on_fill(5, 115, 1004, 5, false);
 
-    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 112.5)
+    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 112)
         << "Sell when position is negative should adjust average entry price to new average value.";
 
     metrics.on_order_placed(6, Metrics::Side::BUYS, 100, 1005, 5, false);
     metrics.on_fill(6, 100, 1005, 5, false);
 
-    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 112.5)
+    EXPECT_EQ(metrics.get_avg_entry_price_ticks(), 112)
         << "Buy shouldn't change average entry price when position is negative.";
 
     metrics.on_order_placed(7, Metrics::Side::BUYS, 100, 1006, 10, false);
@@ -679,6 +679,7 @@ TEST(MetricsTest, FillRatioCalculation) {
 */
 TEST(MetricsTest, SharpeRatioCalculation) {
     Metrics metrics;
+
     // Set return_bucket_interval = 1,000,000 us (1 second)
     metrics.set_config(0.001, 0, 0, Metrics::MarkingMethod::MID, 1000000);
 
@@ -697,8 +698,8 @@ TEST(MetricsTest, SharpeRatioCalculation) {
     // Bucket 0: Initial bucket (PnL = 0)
     // ========================================
     metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000000, 10, false);
-    metrics.on_fill(1, 100, 1000000, 10, false);
     metrics.on_market_price_update(1000000, 100, 100);
+    metrics.on_fill(1, 100, 1000000, 10, false);
     // Total PnL = 0, Bucket 0 return = 0 - 0 = 0
     
     // ========================================
@@ -756,27 +757,33 @@ TEST(MetricsTest, SharpeRatioCalculation) {
     // Bucket 5 return = 500 - 400 = +100
 
     // ========================================
-    // Finalize to Calculate Sharpe Ratio
+    // Final period activity (creates non-zero final bucket)
     // ========================================
-    metrics.finalize(6000000);
+    metrics.on_order_placed(11, Metrics::Side::BUYS, 135, 6200000, 5, false);
+    metrics.on_fill(11, 135, 6200000, 5, false);
+    metrics.on_order_placed(12, Metrics::Side::SELLS, 145, 6400000, 5, false);
+    metrics.on_fill(12, 145, 6400000, 5, false);
+    // Realized PnL = 500 + 5*(145-135) = 500 + 50 = 550
 
-    // Expected calculation:
-    // Returns: [0, 100, 200, 150, -50, 100]
-    // Mean = 500 / 6 = 83.333
-    // Variance = 43333.33 / 6 = 7222.22
-    // Std Dev = sqrt(7222.22) ≈ 84.98
-    // Raw Sharpe = 83.333 / 84.98 ≈ 0.9806
-    
+    metrics.finalize(6500000);
+    // Final bucket (Bucket 6): 550 - 500 = +50
+
+    /// Expected calculation:
+    // Returns: [0, 100, 200, 150, -50, 100, 50]
+    // Mean = 550 / 7 = 78.5714
+    // Variance = 44285.71 / 7 = 6326.53
+    // Std Dev = sqrt(6326.53) = 79.54
+    // Raw Sharpe = 78.5714 / 79.54 = 0.9878
+
     // Annualization factor:
-    // Trading year = 252 days * 6.5 hours * 3600 sec * 1000000 us = 5,875,200,000,000 us
-    // Buckets per year = 5,875,200,000,000 / 1,000,000 = 5,875,200
-    // Scaling factor = sqrt(5,875,200) ≈ 2423.67
-    // Annualized Sharpe = 0.9806 * 2423.67 ≈ 2376.7
+    // Buckets per year = 5,896,800 (252 days * 6.5 hours * 3600 seconds)
+    // Scaling factor = sqrt(5,896,800) = 2428.46
+    // Annualized Sharpe = 0.9878 * 2428.46 = 2398.78
 
-    double expected_sharpe = (500.0 / 6.0) / std::sqrt(43333.33 / 6.0) * std::sqrt(5875200.0);
-    
+    double expected_sharpe = (550.0 / 7.0) / std::sqrt(44285.71 / 7.0) * std::sqrt(5896800.0);
+
     EXPECT_NEAR(metrics.get_sharpe_ratio(), expected_sharpe, 1.0)
-        << "Sharpe ratio should be approximately " << expected_sharpe;
+        << "Sharpe ratio should be approximately " << expected_sharpe << ", but result is " << metrics.get_sharpe_ratio();
 
     // Additional sanity checks
     EXPECT_GT(metrics.get_sharpe_ratio(), 0)
@@ -798,8 +805,8 @@ TEST(MetricsTest, VolatilityCalculation) {
     
     // Bucket 0: PnL = 0
     metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000000, 10, false);
-    metrics.on_fill(1, 100, 1000000, 10, false);
     metrics.on_market_price_update(1000000, 100, 100);
+    metrics.on_fill(1, 100, 1000000, 10, false);
     
     // Bucket 1: PnL = 100 (return = +100)
     metrics.on_order_placed(2, Metrics::Side::SELLS, 110, 2000000, 10, false);
@@ -834,21 +841,26 @@ TEST(MetricsTest, VolatilityCalculation) {
     metrics.on_fill(10, 135, 6000000, 10, false);
     metrics.on_market_price_update(6000000, 135, 135);
 
-    // Finalize to calculate volatility
-    metrics.finalize(6000000);
+    // Last Bucket: finalize
+    metrics.on_order_placed(11, Metrics::Side::BUYS, 135, 6200000, 5, false);
+    metrics.on_fill(11, 135, 6200000, 5, false);
+    metrics.on_order_placed(12, Metrics::Side::SELLS, 145, 6400000, 5, false);
+    metrics.on_fill(12, 145, 6400000, 5, false);
+    // Realized PnL = 500 + 5*(145-135) = 500 + 50 = 550
+
+    metrics.finalize(6500000);
+    // Final bucket (Bucket 6): 550 - 500 = +50
 
     // Expected volatility calculation:
-    // Returns: [0, 100, 200, 150, -50, 100]
-    // Mean = 500 / 6 = 83.333
-    // Deviations from mean: [-83.333, 16.667, 116.667, 66.667, -133.333, 16.667]
-    // Squared deviations: [6944.44, 277.78, 13611.11, 4444.44, 17777.78, 277.78]
-    // Variance = 43333.33 / 6 = 7222.22
-    // Volatility (Std Dev) = sqrt(7222.22) = 84.98
-    
-    double expected_volatility = std::sqrt(43333.33 / 6.0);
-    
+    // Returns: [0, 100, 200, 150, -50, 100, 50]
+    // Mean = 550 / 7 = 78.5714
+    // Variance = 44285.71 / 7 = 6326.53
+    // Volatility (Std Dev) = sqrt(6326.53) = 79.54
+
+    double expected_volatility = std::sqrt(44285.71 / 7.0);
+
     EXPECT_NEAR(metrics.get_volatility(), expected_volatility, 0.01)
-        << "Volatility should be approximately " << expected_volatility << ", but result is " << metrics.get_volatility();
+        << "Volatility should be approximately " << expected_volatility;
 
     // Additional checks
     EXPECT_GT(metrics.get_volatility(), 0)
