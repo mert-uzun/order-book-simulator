@@ -286,5 +286,64 @@ TEST(LatencyQueueTest, ProcessBeforeEventTime) {
     ============================================================
 */
 TEST(LatencyQueueTest, IsEmptyWorks) {
+    LatencyQueue latency_queue;
+
+    // We know from TEST 1 that the default latency boundaries are:
+    // Order send min: 50, Order send max: 200
+    // Cancel min: 30, Cancel max: 150
+    // Modify min: 40, Modify max: 180
+    // Acknowledge fill min: 100, Acknowledge fill max: 400
+    // Market update min: 50, Market update max: 150
+
+    // ========================================
+    // CHECK 1: Is empty at the start
+    // ========================================
+    EXPECT_TRUE(latency_queue.is_empty())
+        << "Latency queue should be empty at the start.";
+
+    // ========================================
+    // CHECK 2: Is not empty after scheduling of multiple events and not executing them. This is checked in between each scheduling action.
+    // ========================================
+    latency_queue.schedule_event(1000000, LatencyQueue::ActionType::ORDER_SEND, [](long long exec_time) {
+        // Something
+    });
+    EXPECT_FALSE(latency_queue.is_empty())
+        << "Latency queue should not be empty after scheduling events and not executing them (1st).";
+
+    latency_queue.schedule_event(1000000 + 200, LatencyQueue::ActionType::CANCEL, [](long long exec_time) {
+        // Something
+    });
+    EXPECT_FALSE(latency_queue.is_empty())
+        << "Latency queue should not be empty after scheduling events and not executing them (2nd).";
+
+    latency_queue.schedule_event(1000000 + 200 + 150, LatencyQueue::ActionType::MODIFY, [](long long exec_time) {
+        // Something
+    });
+    EXPECT_FALSE(latency_queue.is_empty())
+        << "Latency queue should not be empty after scheduling events and not executing them (3rd).";
+
+    latency_queue.schedule_event(1000000 + 200 + 150 + 180, LatencyQueue::ActionType::ACKNOWLEDGE_FILL, [](long long exec_time) {
+        // Something
+    });
+    EXPECT_FALSE(latency_queue.is_empty())
+        << "Latency queue should not be empty after scheduling events and not executing them (4th).";
+
+    latency_queue.schedule_event(1000000 + 200 + 150 + 180 + 400, LatencyQueue::ActionType::MARKET_UPDATE, [](long long exec_time) {
+        // Something
+    });
+    EXPECT_FALSE(latency_queue.is_empty())
+        << "Latency queue should not be empty after scheduling events and not executing them (5th).";
     
+    // Check if the event queue has exactly 5 events after scheduling
+    EXPECT_EQ(latency_queue.get_event_queue().size(), 5)
+        << "Event queue should have 5 events after scheduling all 5 events.";
+
+    // ========================================
+    // CHECK 3: Process all 5 events check if queue is empty
+    // ========================================
+    latency_queue.process_until(1000000 + 200 + 150 + 180 + 400 + 150);
+    EXPECT_TRUE(latency_queue.is_empty())
+        << "Latency queue should be empty after processing all 5 events.";
+    EXPECT_EQ(latency_queue.get_event_queue().size(), 0)
+        << "Event queue should have 0 events after processing all 5 events.";
 }
