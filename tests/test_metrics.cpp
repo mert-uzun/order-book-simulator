@@ -679,8 +679,106 @@ TEST(MetricsTest, FillRatioCalculation) {
 */
 TEST(MetricsTest, SharpeRatioCalculation) {
     Metrics metrics;
+    // Set return_bucket_interval = 1,000,000 us (1 second)
+    metrics.set_config(0.001, 0, 0, Metrics::MarkingMethod::MID, 1000000);
+
+    // ========================================
+    // Scenario: 5 return buckets with known returns
+    // ========================================
+    // Create returns: [100, 200, 150, -50, 100]
+    // Mean = (100+200+150-50+100)/5 = 500/5 = 100
+    // Variance = [(0)^2 + (100)^2 + (50)^2 + (-150)^2 + (0)^2] / 5
+    //          = [0 + 10000 + 2500 + 22500 + 0] / 5 = 35000 / 5 = 7000
+    // Std Dev = sqrt(7000) ≈ 83.666
+    // Raw Sharpe = 100 / 83.666 ≈ 1.195
     
+    // ========================================
+    // Bucket 1: PnL goes from 0 to 100
+    // ========================================
+    metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000000, 10, false);
+    metrics.on_fill(1, 100, 1000000, 10, false);
+    metrics.on_market_price_update(1000000, 100, 100);
+    // Total PnL = 0
     
+    metrics.on_order_placed(2, Metrics::Side::SELLS, 110, 2000000, 10, false);
+    metrics.on_fill(2, 110, 2000000, 10, false);
+    // Realized PnL = 10 * (110 - 100) = +100
+    metrics.on_market_price_update(2000000, 110, 110); // Trigger bucket (2s passed)
+    // Bucket 1 return = 100 - 0 = +100
+
+    // ========================================
+    // Bucket 2: PnL goes from 100 to 300
+    // ========================================
+    metrics.on_order_placed(3, Metrics::Side::BUYS, 110, 2500000, 20, false);
+    metrics.on_fill(3, 110, 2500000, 20, false);
+    metrics.on_market_price_update(3000000, 110, 110);
+    // Realized PnL = 100 (unchanged, flat position)
+    
+    metrics.on_order_placed(4, Metrics::Side::SELLS, 120, 3000000, 20, false);
+    metrics.on_fill(4, 120, 3000000, 20, false);
+    // Realized PnL = 100 + 20*(120-110) = 100 + 200 = 300
+    metrics.on_market_price_update(3000000, 120, 120); // Trigger bucket (3s)
+    // Bucket 2 return = 300 - 100 = +200
+
+    // ========================================
+    // Bucket 3: PnL goes from 300 to 450
+    // ========================================
+    metrics.on_order_placed(5, Metrics::Side::BUYS, 120, 3500000, 15, false);
+    metrics.on_fill(5, 120, 3500000, 15, false);
+    metrics.on_order_placed(6, Metrics::Side::SELLS, 130, 4000000, 15, false);
+    metrics.on_fill(6, 130, 4000000, 15, false);
+    // Realized PnL = 300 + 15*(130-120) = 300 + 150 = 450
+    metrics.on_market_price_update(4000000, 130, 130); // Trigger bucket (4s)
+    // Bucket 3 return = 450 - 300 = +150
+
+    // ========================================
+    // Bucket 4: PnL goes from 450 to 400 (LOSS)
+    // ========================================
+    metrics.on_order_placed(7, Metrics::Side::BUYS, 130, 4500000, 10, false);
+    metrics.on_fill(7, 130, 4500000, 10, false);
+    metrics.on_order_placed(8, Metrics::Side::SELLS, 125, 5000000, 10, false);
+    metrics.on_fill(8, 125, 5000000, 10, false);
+    // Realized PnL = 450 + 10*(125-130) = 450 - 50 = 400
+    metrics.on_market_price_update(5000000, 125, 125); // Trigger bucket (5s)
+    // Bucket 4 return = 400 - 450 = -50
+
+    // ========================================
+    // Bucket 5: PnL goes from 400 to 500
+    // ========================================
+    metrics.on_order_placed(9, Metrics::Side::BUYS, 125, 5500000, 10, false);
+    metrics.on_fill(9, 125, 5500000, 10, false);
+    metrics.on_order_placed(10, Metrics::Side::SELLS, 135, 6000000, 10, false);
+    metrics.on_fill(10, 135, 6000000, 10, false);
+    // Realized PnL = 400 + 10*(135-125) = 400 + 100 = 500
+    metrics.on_market_price_update(6000000, 135, 135); // Trigger bucket (6s)
+    // Bucket 5 return = 500 - 400 = +100
+
+    // ========================================
+    // Finalize to Calculate Sharpe Ratio
+    // ========================================
+    metrics.finalize(6000000);
+
+    // Expected calculation:
+    // Returns: [100, 200, 150, -50, 100]
+    // Mean = 100
+    // Variance = 7000
+    // Std Dev = sqrt(7000) ≈ 83.666
+    // Raw Sharpe = 100 / 83.666 ≈ 1.195
+    
+    // Annualization factor:
+    // Trading year = 252 days * 6.5 hours * 3600 sec * 1000000 us = 5,875,200,000,000 us
+    // Buckets per year = 5,875,200,000,000 / 1,000,000 = 5,875,200
+    // Scaling factor = sqrt(5,875,200) ≈ 2423.67
+    // Annualized Sharpe = 1.195 * 2423.67 ≈ 2896.3
+
+    double expected_sharpe = (100.0 / std::sqrt(7000.0)) * std::sqrt(5875200.0);
+    
+    EXPECT_NEAR(metrics.get_sharpe_ratio(), expected_sharpe, 1.0)
+    << "Sharpe ratio should be approximately " << expected_sharpe;
+
+    // Additional sanity checks
+    EXPECT_GT(metrics.get_sharpe_ratio(), 0)
+    << "Sharpe ratio should be positive for profitable trading with one loss.";
 }
 
 /**
