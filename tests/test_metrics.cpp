@@ -488,6 +488,91 @@ TEST(MetricsTest, TotalPnLCalculation) {
     TEST 6: FeeAccounting
     PURPOSE: Test maker rebates and taker fees are tracked correctly
 */
+TEST(MetricsTest, FeeAccounting) {
+    Metrics metrics;
+    // Set maker_rebate = 2 ticks/share, taker_fee = 5 ticks/share
+    metrics.set_config(0.001, 2, 5, Metrics::MarkingMethod::MID, 1000000);
+
+    // ========================================
+    // Order 1: Buy 5 @ 100 (RESTING - Maker Rebate)
+    // ========================================
+    metrics.on_order_placed(1, Metrics::Side::BUYS, 100, 1000, 5, false);
+    metrics.on_fill(1, 100, 1000, 5, false); // is_ioc = false
+    // Fees = 0 - (2 * 5) = -10 (rebate earned)
+    
+    EXPECT_EQ(metrics.fees_ticks, -10)
+        << "Fees should be -10 after earning maker rebate on 5 shares.";
+
+    // ========================================
+    // Order 2: Buy 5 @ 100 (IOC - Taker Fee)
+    // ========================================
+    metrics.on_order_placed(2, Metrics::Side::BUYS, 100, 1001, 5, true);
+    metrics.on_fill(2, 100, 1001, 5, true); // is_ioc = true
+    // Fees = -10 + (5 * 5) = +15 (paid taker fee)
+    
+    EXPECT_EQ(metrics.fees_ticks, 15)
+        << "Fees should be 15 after paying taker fee on 5 shares.";
+
+    // ========================================
+    // Order 3: Sell 5 @ 105 (RESTING - Maker Rebate)
+    // ========================================
+    metrics.on_order_placed(3, Metrics::Side::SELLS, 105, 1002, 5, false);
+    metrics.on_fill(3, 105, 1002, 5, false); // is_ioc = false
+    // Fees = 15 - (2 * 5) = +5 (earned rebate)
+    
+    EXPECT_EQ(metrics.fees_ticks, 5)
+        << "Fees should be 5 after earning maker rebate on 5 shares.";
+
+    // ========================================
+    // Order 4: Sell 10 @ 110 (IOC - Taker Fee)
+    // ========================================
+    metrics.on_order_placed(4, Metrics::Side::SELLS, 110, 1003, 10, true);
+    metrics.on_fill(4, 110, 1003, 10, true); // is_ioc = true
+    // Fees = 5 + (5 * 10) = +55 (paid taker fee)
+    
+    EXPECT_EQ(metrics.fees_ticks, 55)
+        << "Fees should be 55 after paying taker fee on 10 shares.";
+
+    // ========================================
+    // Order 5: Sell 5 @ 110 (RESTING - Maker Rebate)
+    // ========================================
+    metrics.on_order_placed(5, Metrics::Side::SELLS, 110, 1004, 5, false);
+    metrics.on_fill(5, 110, 1004, 5, false); // is_ioc = false
+    // Fees = 55 - (2 * 5) = +45 (earned rebate)
+    
+    EXPECT_EQ(metrics.fees_ticks, 45)
+        << "Fees should be 45 after earning maker rebate on 5 shares.";
+
+    // ========================================
+    // Order 6: Buy 5 @ 100 (IOC - Taker Fee)
+    // ========================================
+    metrics.on_order_placed(6, Metrics::Side::BUYS, 100, 1005, 5, true);
+    metrics.on_fill(6, 100, 1005, 5, true); // is_ioc = true
+    // Fees = 45 + (5 * 5) = +70 (paid taker fee)
+    
+    EXPECT_EQ(metrics.fees_ticks, 70)
+        << "Fees should be 70 after paying taker fee on 5 shares.";
+
+    // ========================================
+    // Order 7: Buy 10 @ 100 (RESTING - Maker Rebate)
+    // ========================================
+    metrics.on_order_placed(7, Metrics::Side::BUYS, 100, 1006, 10, false);
+    metrics.on_fill(7, 100, 1006, 10, false); // is_ioc = false
+    // Fees = 70 - (2 * 10) = +50 (earned rebate)
+    
+    EXPECT_EQ(metrics.fees_ticks, 50)
+        << "Fees should be 50 after earning maker rebate on 10 shares.";
+
+    // ========================================
+    // Summary: Total Fee Breakdown
+    // ========================================
+    // Total maker rebates earned: 5+5+5+10 = 25 shares × 2 = -50 ticks
+    // Total taker fees paid: 5+10+5 = 20 shares × 5 = +100 ticks
+    // Net fees paid: 100 - 50 = +50 ticks
+    
+    EXPECT_EQ(metrics.fees_ticks, 50)
+        << "Final fees should be 50 ticks (net cost after rebates).";
+}
 
 
 /**
