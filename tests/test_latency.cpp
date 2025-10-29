@@ -54,6 +54,9 @@ TEST(LatencyQueueTest, DefaultInitialization) {
     ============================================================
 */
 TEST(LatencyQueueTest, CustomLatencyProfile) {
+    LatencyQueue latency_queue;
+
+    latency_queue.reset_latency_profile(100, 200, 40, 150, 50, 180, 120, 450, 60, 160);
     
 }
 
