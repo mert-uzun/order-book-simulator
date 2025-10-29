@@ -217,14 +217,3 @@ TEST(LatencyQueueTest, ProcessBeforeEventTime) {
 TEST(LatencyQueueTest, IsEmptyWorks) {
     
 }
-
-/**
-    ============================================================
-    TEST 8: AllActionTypes
-    ============================================================
-    PURPOSE: Test that all 5 ActionTypes produce latency within their bounds
-    ============================================================
-*/
-TEST(LatencyQueueTest, AllActionTypes) {
-    
-}
