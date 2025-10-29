@@ -171,7 +171,18 @@ TEST(LatencyQueueTest, GeneratedLatencyWithinBounds) {
     ============================================================
 */
 TEST(LatencyQueueTest, SingleEventProcessing) {
+    LatencyQueue latency_queue;
+
+    long long start_time_us = 1000000;
     
+    latency_queue.schedule_event(start_time_us, LatencyQueue::ActionType::ORDER_SEND, [start_time_us](long long exec_time) {
+        EXPECT_GE(exec_time, start_time_us + 50) // 50 is the default min latenct for order send action
+            << "Order send execution time should be greater than or equal to start time plus minimum latency. Start time: " << start_time_us << ", Minimum latency: 50, Result: " << exec_time << std::endl;
+        EXPECT_LE(exec_time, start_time_us + 200) // 200 is the default max latency for order send action
+            << "Order send execution time should be less than or equal to start time plus maximum latency. Start time: " << start_time_us << ", Maximum latency: 200, Result: " << exec_time << std::endl;
+    });
+
+    latency_queue.process_until(start_time_us + 10000000); // include the event scheduled above
 }
 
 /**
