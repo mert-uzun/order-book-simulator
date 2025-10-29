@@ -62,43 +62,83 @@ void LatencyQueue::reset_latency_profile(long long order_send_min, long long ord
                                          long long acknowledge_fill_min, long long acknowledge_fill_max,
                                          long long market_update_min, long long market_update_max) {
 
-    if (order_send_min >= 0 && order_send_max >= 0 && order_send_min <= order_send_max) {
+    /**
+    
+    - Both values must be greater than 0, and min must be less than max.
+    - But if min is less than 0, max is greater than 0, and max is greater than the old min, then only max should be updated, not min.
+    - The reverse is also true; generally, it's probably best to keep the old values.
+    
+    */
+
+    // Store old values
+    long long old_order_send_min = this->latency_boundaries.order_send_min;
+    long long old_order_send_max = this->latency_boundaries.order_send_max;
+    long long old_cancel_min = this->latency_boundaries.cancel_min;
+    long long old_cancel_max = this->latency_boundaries.cancel_max;
+    long long old_modify_min = this->latency_boundaries.modify_min;
+    long long old_modify_max = this->latency_boundaries.modify_max;
+    long long old_acknowledge_fill_min = this->latency_boundaries.acknowledge_fill_min;
+    long long old_acknowledge_fill_max = this->latency_boundaries.acknowledge_fill_max;
+    long long old_market_update_min = this->latency_boundaries.market_update_min;
+    long long old_market_update_max = this->latency_boundaries.market_update_max;
+
+    if (order_send_min > 0) {
         this->latency_boundaries.order_send_min = order_send_min;
-        this->latency_boundaries.order_send_max = order_send_max;    
     }
-    else {
+    if (order_send_max > 0) {
+        this->latency_boundaries.order_send_max = order_send_max;
+    }
+    if (this->latency_boundaries.order_send_max < this->latency_boundaries.order_send_min) {
+        this->latency_boundaries.order_send_min = old_order_send_min;
+        this->latency_boundaries.order_send_max = old_order_send_max;
         std::cout << "Invalid latency boundaries for order send, values are not updated. Order send min: " << order_send_min << " Order send max: " << order_send_max << std::endl;
     }
 
-    if (cancel_min >= 0 && cancel_max >= 0 && cancel_min <= cancel_max) {
+    if (cancel_min > 0) {
         this->latency_boundaries.cancel_min = cancel_min;
+    }
+    if (cancel_max > 0) {
         this->latency_boundaries.cancel_max = cancel_max;
     }
-    else {
+    if (this->latency_boundaries.cancel_max < this->latency_boundaries.cancel_min) {
+        this->latency_boundaries.cancel_min = old_cancel_min;
+        this->latency_boundaries.cancel_max = old_cancel_max;
         std::cout << "Invalid latency boundaries for cancel, values are not updated. Cancel min: " << cancel_min << " Cancel max: " << cancel_max << std::endl;
     }
 
-    if (modify_min >= 0 && modify_max >= 0 && modify_min <= modify_max) {
+    if (modify_min > 0) {
         this->latency_boundaries.modify_min = modify_min;
+    }
+    if (modify_max > 0) {
         this->latency_boundaries.modify_max = modify_max;
     }
-    else {
+    if (this->latency_boundaries.modify_max < this->latency_boundaries.modify_min) {
+        this->latency_boundaries.modify_min = old_modify_min;
+        this->latency_boundaries.modify_max = old_modify_max;
         std::cout << "Invalid latency boundaries for modify, values are not updated. Modify min: " << modify_min << " Modify max: " << modify_max << std::endl;
     }
 
-    if (acknowledge_fill_min >= 0 && acknowledge_fill_max >= 0 && acknowledge_fill_min <= acknowledge_fill_max) {
+    if (acknowledge_fill_min > 0) {
         this->latency_boundaries.acknowledge_fill_min = acknowledge_fill_min;
+    }
+    if (acknowledge_fill_max > 0) {
         this->latency_boundaries.acknowledge_fill_max = acknowledge_fill_max;
     }
-    else {
+    if (this->latency_boundaries.acknowledge_fill_max < this->latency_boundaries.acknowledge_fill_min) {
+        this->latency_boundaries.acknowledge_fill_min = old_acknowledge_fill_min;
+        this->latency_boundaries.acknowledge_fill_max = old_acknowledge_fill_max;
         std::cout << "Invalid latency boundaries for acknowledge fill, values are not updated. Acknowledge fill min: " << acknowledge_fill_min << " Acknowledge fill max: " << acknowledge_fill_max << std::endl;
     }
-
-    if (market_update_min >= 0 && market_update_max >= 0 && market_update_min <= market_update_max) {
+    
+    if (market_update_min > 0) {
         this->latency_boundaries.market_update_min = market_update_min;
+    }
+    if (market_update_max > 0) {
         this->latency_boundaries.market_update_max = market_update_max;
     }
-    else {
+    if (this->latency_boundaries.market_update_max < this->latency_boundaries.market_update_min) {
+        this->latency_boundaries.market_update_min = old_market_update_min;
+        this->latency_boundaries.market_update_max = old_market_update_max;
         std::cout << "Invalid latency boundaries for market update, values are not updated. Market update min: " << market_update_min << " Market update max: " << market_update_max << std::endl;
     }
 }
