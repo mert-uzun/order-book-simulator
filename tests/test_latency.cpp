@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
+#include <list>
+#include <stack>
 #include "../include/LatencyQueue.h"
 
 /**
@@ -193,7 +195,68 @@ TEST(LatencyQueueTest, SingleEventProcessing) {
     ============================================================
 */
 TEST(LatencyQueueTest, MultipleEventsInOrder) {
+    LatencyQueue latency_queue;
+
+    /*
+        Schedule 5 different tasks, each pushing a number to a list.
+        Then we will check if these numbers are in correct order, then we will make sure scheduled events execute in a chronological order.    
+    */
+
+    // We know from TEST 1 that the default latency boundaries are:
+    // Order send min: 50, Order send max: 200
+    // Cancel min: 30, Cancel max: 150
+    // Modify min: 40, Modify max: 180
+    // Acknowledge fill min: 100, Acknowledge fill max: 400
+    // Market update min: 50, Market update max: 150
+
+    std::list<int> number_list;
+
+    // ========================================
+    // EVENT 1
+    // ========================================
+    latency_queue.schedule_event(1000000, LatencyQueue::ActionType::ORDER_SEND, [&number_list](long long exec_time) {
+        number_list.push_back(1);
+    });
+
+    // ========================================
+    // EVENT 2 - 1000000 + 200 is because maximum latency for the previous order send action is 200.
+    // ========================================
+    latency_queue.schedule_event(1000000 + 200, LatencyQueue::ActionType::CANCEL, [&number_list](long long exec_time) {
+        number_list.push_back(2);
+    });
+
+    // ========================================
+    // EVENT 3 - 1000000 + 200 + 150 is because maximum latency for the previous cancel action is 150.
+    // ========================================
+    latency_queue.schedule_event(1000000 + 200 + 150, LatencyQueue::ActionType::MODIFY, [&number_list](long long exec_time) {
+        number_list.push_back(3);
+    });
+
+    // ========================================
+    // EVENT 4 - 1000000 + 200 + 150 + 180 is because maximum latency for the previous modify action is 180.
+    // ========================================
+    latency_queue.schedule_event(1000000 + 200 + 150 + 180, LatencyQueue::ActionType::ACKNOWLEDGE_FILL, [&number_list](long long exec_time) {
+        number_list.push_back(4);
+    });
     
+    // ========================================
+    // EVENT 5 - 1000000 + 200 + 150 + 180 + 400 is because maximum latency for the previous acknowledge fill action is 400.
+    // ========================================
+    latency_queue.schedule_event(1000000 + 200 + 150 + 180 + 400, LatencyQueue::ActionType::MARKET_UPDATE, [&number_list](long long exec_time) {
+        number_list.push_back(5);
+    });
+    
+    // ========================================
+    // PROCESS UNTIL 1000000 + 200 + 150 + 180 + 400 + 150 because maximum latency for the previous market update action is 150.
+    // ========================================
+    latency_queue.process_until(1000000 + 200 + 150 + 180 + 400 + 150);
+
+    // Now we expect the number list to be [1, 2, 3, 4, 5] if the process_until fuction executes tasks in true chronological order.
+    for (int i = 0; i < 5; i++) {
+        EXPECT_EQ(number_list.front(), i + 1)
+            << i + 1 << "th number in the list should be " << i + 1 << ". Result: " << number_list.front() << ". This means scheduled events are not executed in corect chronological order.";
+        number_list.pop_front();
+    }
 }
 
 /**
