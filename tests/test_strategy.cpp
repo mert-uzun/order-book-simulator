@@ -65,7 +65,86 @@ TEST(StrategyTest, ConstructorInitialization) {
     ============================================================
 */
 TEST(StrategyTest, SettersAndGetters) {
+    OrderBook orderbook;
+    Strategy strategy(orderbook, 100, 2, 1000, 3, 500000);
     
+    // ===== Quote Size =====
+    EXPECT_NO_THROW(strategy.set_quote_size(500))
+        << "set_quote_size throws an exception." << std::endl;
+    EXPECT_EQ(strategy.get_quote_size(), 500)
+        << "Value of quote size does not match with the expected value after setting. Expected: 500, Result: " << strategy.get_quote_size() << std::endl;
+
+    // ===== Tick Offset From Mid =====
+    EXPECT_NO_THROW(strategy.set_tick_offset_from_mid(1))
+        << "set_tick_offset_from_mid throws an exception." << std::endl;
+    EXPECT_EQ(strategy.get_tick_offset_from_mid(), 1)
+        << "Value of tick offset from mid does not match with the expected value after setting. Expected: 1, Result: " << strategy.get_tick_offset_from_mid() << std::endl;
+
+    // ===== Max Inventory =====
+    EXPECT_NO_THROW(strategy.set_max_inventory(1500))
+        << "set_max_inventory throws an exception." << std::endl;
+    EXPECT_EQ(strategy.get_max_inventory(), 1500)
+        << "Value of max inventory does not match with the expected value after setting. Expected: 1500, Result: " << strategy.get_max_inventory() << std::endl;
+
+    // ===== Cancel Threshold Ticks =====
+    EXPECT_NO_THROW(strategy.set_cancel_threshold_ticks(4))
+        << "set_cancel_threshold_ticks throws an exception." << std::endl;
+    EXPECT_EQ(strategy.get_cancel_threshold_ticks(), 4)
+        << "Value of cancel threshold ticks does not match with the expected value after setting. Expected: 4, Result: " << strategy.get_cancel_threshold_ticks() << std::endl;
+
+    // ===== Cooldown Between Requotes =====
+    EXPECT_NO_THROW(strategy.set_cooldown_between_requotes(400000))
+        << "set_cooldown_between_requotes throws an exception." << std::endl;
+    EXPECT_EQ(strategy.get_cooldown_between_requotes(), 400000)
+        << "Value of cooldown between requotes does not match with the expected value after setting. Expected: 400000, Result: " << strategy.get_cooldown_between_requotes() << std::endl;
+
+    // ===== Active Buy Order Id =====
+    EXPECT_NO_THROW(strategy.set_active_buy_order_id(1001))
+        << "set_active_buy_order_id throws an exception." << std::endl;
+    EXPECT_EQ(strategy.get_active_buy_order_id(), 1001)
+        << "Value of active buy order id does not match with the expected value after setting. Expected: 1001, Result: " << strategy.get_active_buy_order_id() << std::endl;
+
+    // ===== Active Sell Order Id =====
+    EXPECT_NO_THROW(strategy.set_active_sell_order_id(1002))
+        << "set_active_sell_order_id throws an exception." << std::endl;
+    EXPECT_EQ(strategy.get_active_sell_order_id(), 1002)
+        << "Value of active sell order id does not match with the expected value after setting. Expected: 1002, Result: " << strategy.get_active_sell_order_id() << std::endl;
+
+    // ===== Last Pinged Mid Price Ticks =====
+    EXPECT_NO_THROW(strategy.set_last_pinged_mid_price_ticks(2000))
+        << "set_last_pinged_mid_price_ticks throws an exception." << std::endl;
+    EXPECT_EQ(strategy.get_last_pinged_mid_price_ticks(), 2000)
+        << "Value of last pinged mid price ticks does not match with the expected value after setting. Expected: 2000, Result: " << strategy.get_last_pinged_mid_price_ticks() << std::endl;
+
+    // ===== Last Quote Time Us =====
+    EXPECT_NO_THROW(strategy.set_last_quote_time_us(3000))
+        << "set_last_quote_time_us throws an exception." << std::endl;
+    EXPECT_EQ(strategy.get_last_quote_time_us(), 3000)
+        << "Value of last quote time us does not match with the expected value after setting. Expected: 3000, Result: " << strategy.get_last_quote_time_us() << std::endl;
+
+    // ===== Latency Config =====
+    EXPECT_NO_THROW(strategy.set_latency_config(100, 200, 300, 400, 500, 600, 700, 800, 900, 1000))
+        << "set_latency_config throws an exception." << std::endl;
+    EXPECT_EQ(strategy.get_latency_queue().get_order_send_min(), 100)
+        << "Value of order send min in latency queue settings does not match with the expected value after setting. Expected: 100, Result: " << strategy.get_latency_queue().get_order_send_min() << std::endl;
+    EXPECT_EQ(strategy.get_latency_queue().get_order_send_max(), 200)
+        << "Value of order send max in latency queue settings does not match with the expected value after setting. Expected: 200, Result: " << strategy.get_latency_queue().get_order_send_max() << std::endl;
+    EXPECT_EQ(strategy.get_latency_queue().get_cancel_min(), 300)
+        << "Value of cancel min in latency queue settings does not match with the expected value after setting. Expected: 300, Result: " << strategy.get_latency_queue().get_cancel_min() << std::endl;
+    EXPECT_EQ(strategy.get_latency_queue().get_cancel_max(), 400)
+        << "Value of cancel max in latency queue settings does not match with the expected value after setting. Expected: 400, Result: " << strategy.get_latency_queue().get_cancel_max() << std::endl;
+    EXPECT_EQ(strategy.get_latency_queue().get_modify_min(), 500)
+        << "Value of modify min in latency queue settings does not match with the expected value after setting. Expected: 500, Result: " << strategy.get_latency_queue().get_modify_min() << std::endl;
+    EXPECT_EQ(strategy.get_latency_queue().get_modify_max(), 600)
+        << "Value of modify max in latency queue settings does not match with the expected value after setting. Expected: 600, Result: " << strategy.get_latency_queue().get_modify_max() << std::endl;
+    EXPECT_EQ(strategy.get_latency_queue().get_acknowledge_fill_min(), 700)
+        << "Value of acknowledge fill min in latency queue settings does not match with the expected value after setting. Expected: 700, Result: " << strategy.get_latency_queue().get_acknowledge_fill_min() << std::endl;
+    EXPECT_EQ(strategy.get_latency_queue().get_acknowledge_fill_max(), 800)
+        << "Value of acknowledge fill max in latency queue settings does not match with the expected value after setting. Expected: 800, Result: " << strategy.get_latency_queue().get_acknowledge_fill_max() << std::endl;
+    EXPECT_EQ(strategy.get_latency_queue().get_market_update_min(), 900)
+        << "Value of market update min in latency queue settings does not match with the expected value after setting. Expected: 900, Result: " << strategy.get_latency_queue().get_market_update_min() << std::endl;
+    EXPECT_EQ(strategy.get_latency_queue().get_market_update_max(), 1000)
+        << "Value of market update max in latency queue settings does not match with the expected value after setting. Expected: 1000, Result: " << strategy.get_latency_queue().get_market_update_max() << std::endl;
 }
 
 /**

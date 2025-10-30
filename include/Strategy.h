@@ -121,7 +121,7 @@ class Strategy {
         
         void set_active_buy_order_id(long long value) { active_buy_order_id = value; }
         void set_active_sell_order_id(long long value) { active_sell_order_id = value; }
-        void set_last_mid_price_ticks(long long value) { 
+        void set_last_pinged_mid_price_ticks(long long value) { 
             if (value > 0) {
                 last_pinged_mid_price_ticks = value; 
             }

@@ -69,4 +69,15 @@ class LatencyQueue {
         bool is_empty() const {
             return event_queue.empty();
         }
+
+        long long get_order_send_min() const { return latency_boundaries.order_send_min; }
+        long long get_order_send_max() const { return latency_boundaries.order_send_max; }
+        long long get_cancel_min() const { return latency_boundaries.cancel_min; }
+        long long get_cancel_max() const { return latency_boundaries.cancel_max; }
+        long long get_modify_min() const { return latency_boundaries.modify_min; }
+        long long get_modify_max() const { return latency_boundaries.modify_max; }
+        long long get_acknowledge_fill_min() const { return latency_boundaries.acknowledge_fill_min; }
+        long long get_acknowledge_fill_max() const { return latency_boundaries.acknowledge_fill_max; }
+        long long get_market_update_min() const { return latency_boundaries.market_update_min; }
+        long long get_market_update_max() const { return latency_boundaries.market_update_max; }
 };
