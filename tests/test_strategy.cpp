@@ -19,7 +19,7 @@ TEST(StrategyTest, ConstructorInitialization) {
     OrderBook orderbook;
     Strategy strategy(orderbook, 100, 2, 1000, 3, 500000);
 
-    EXPECT_EQ(strategy.get_quote_size(), 100);
+    EXPECT_EQ(strategy.get_quote_size(), 100)
         << "There is a problem with the quote size upon Strategy construction. Expected: 100, Result: " << strategy.get_quote_size() << std::endl;
     EXPECT_EQ(strategy.get_tick_offset_from_mid(), 2)
         << "There is a problem with the tick offset from mid upon Strategy construction. Expected: 2, Result: " << strategy.get_tick_offset_from_mid() << std::endl;
