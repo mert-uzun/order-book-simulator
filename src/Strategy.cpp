@@ -7,7 +7,7 @@
 Strategy::Strategy(OrderBook& orderbook, long long quote_size, long long tick_offset, long long max_inv, long long cancel_threshold, long long cooldown_between_requotes) 
                         : metrics(), order_book(orderbook), buy_pongs(), sell_pongs(), latency_queue(), best_bid_ticks(0), best_ask_ticks(0), mid_price_ticks(0), current_market_price_ticks(0), spread_ticks(0),
                         quote_size(quote_size), tick_offset_from_mid(tick_offset), max_inventory(max_inv), cancel_threshold_ticks(cancel_threshold), cooldown_between_requotes(cooldown_between_requotes), 
-                        active_buy_order_id(-1), active_sell_order_id(-1), last_pinged_mid_price_ticks(0), last_quote_time_us(0) {};
+                        active_buy_order_id(-1), active_sell_order_id(-1), last_pinged_mid_price_ticks(0), last_quote_time_us(0);
 
 Strategy::~Strategy() {}
 
