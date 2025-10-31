@@ -171,7 +171,7 @@ TEST(StrategyTest, PlacePingOrders) {
         << "Sell order is not placed into the orderbook.";
     EXPECT_NE(strategy.get_active_sell_order_id(), -1)
         << "Active sell order id is still -1 after placing a ping ask order.";
-    EXPECT_NE(strategy.get_active_sell_order_data().side, Metrics::Side::SELLS)
+    EXPECT_EQ(strategy.get_active_sell_order_data().side, Metrics::Side::SELLS)
         << "Active ping ask order data side is not set to SELLS.";
     EXPECT_EQ(strategy.get_active_sell_order_data().arrival_mark_price_ticks, 1002)
         << "Active ping ask order data arrival mark price ticks is not set to 1002.";
@@ -190,7 +190,7 @@ TEST(StrategyTest, PlacePingOrders) {
         << "Buy order is not placed into the orderbook.";
     EXPECT_NE(strategy.get_active_buy_order_id(), -1)
         << "Active buy order id is still -1 after placing a ping buy order.";
-    EXPECT_NE(strategy.get_active_buy_order_data().side, Metrics::Side::BUYS)
+    EXPECT_EQ(strategy.get_active_buy_order_data().side, Metrics::Side::BUYS)
         << "Active ping buy order data side is not set to BUYS.";
     EXPECT_EQ(strategy.get_active_buy_order_data().arrival_mark_price_ticks, 998)
         << "Active ping buy order data arrival mark price ticks is not set to 998.";
