@@ -168,40 +168,40 @@ TEST(StrategyTest, PlacePingOrders) {
     strategy.execute_latency_queue(2500); // This should execute only the ping ask order placement
 
     EXPECT_EQ(orderbook.get_sells().size(), 1)
-        << "Sell order is not placed into the orderbook.";
+        << "Sell order is not placed into the orderbook." << std::endl;
     EXPECT_NE(strategy.get_active_sell_order_id(), -1)
-        << "Active sell order id is still -1 after placing a ping ask order.";
+        << "Active sell order id is still -1 after placing a ping ask order." << std::endl;
     EXPECT_EQ(strategy.get_active_sell_order_data().side, Metrics::Side::SELLS)
-        << "Active ping ask order data side is not set to SELLS.";
+        << "Active ping ask order data side is not set to SELLS." << std::endl;
     EXPECT_EQ(strategy.get_active_sell_order_data().arrival_mark_price_ticks, 1002)
-        << "Active ping ask order data arrival mark price ticks is not set to 1002.";
+        << "Active ping ask order data arrival mark price ticks is not set to 1002." << std::endl;
     EXPECT_GE(strategy.get_active_sell_order_data().arrival_timestamp_us, 2000)
-        << "Active ping ask order data arrival timestamp us is not greater than or equal to 2000, which is the timestamp without latenct.";
+        << "Active ping ask order data arrival timestamp us is not greater than or equal to 2000, which is the timestamp without latenct." << std::endl;
     EXPECT_EQ(strategy.get_active_sell_order_data().intended_quantity, 100)
-        << "Active ping ask order data intended quantity is not set to 100.";
+        << "Active ping ask order data intended quantity is not set to 100." << std::endl;
     EXPECT_EQ(strategy.get_active_sell_order_data().remaining_qty, 100)
-        << "Active ping ask order data remaining quantity is not set to 100.";
+        << "Active ping ask order data remaining quantity is not set to 100." << std::endl;
     EXPECT_EQ(strategy.get_active_sell_order_data().is_ioc, false)
-        << "Active ping ask order data is ioc is not set to false.";
+        << "Active ping ask order data is ioc is not set to false." << std::endl;
 
     strategy.execute_latency_queue(3500); // This should execute the ping buy order placement
 
     EXPECT_EQ(orderbook.get_buys().size(), 1)
-        << "Buy order is not placed into the orderbook.";
+        << "Buy order is not placed into the orderbook." << std::endl;
     EXPECT_NE(strategy.get_active_buy_order_id(), -1)
-        << "Active buy order id is still -1 after placing a ping buy order.";
+        << "Active buy order id is still -1 after placing a ping buy order." << std::endl;
     EXPECT_EQ(strategy.get_active_buy_order_data().side, Metrics::Side::BUYS)
-        << "Active ping buy order data side is not set to BUYS.";
+        << "Active ping buy order data side is not set to BUYS." << std::endl;
     EXPECT_EQ(strategy.get_active_buy_order_data().arrival_mark_price_ticks, 998)
-        << "Active ping buy order data arrival mark price ticks is not set to 998.";
+        << "Active ping buy order data arrival mark price ticks is not set to 998." << std::endl;
     EXPECT_GE(strategy.get_active_buy_order_data().arrival_timestamp_us, 3000)
-        << "Active ping buy order data arrival timestamp us is not greater than or equal to 3000, which is the timestamp without latenct.";
+        << "Active ping buy order data arrival timestamp us is not greater than or equal to 3000, which is the timestamp without latenct." << std::endl;
     EXPECT_EQ(strategy.get_active_buy_order_data().intended_quantity, 100)
-        << "Active ping buy order data intended quantity is not set to 100.";
+        << "Active ping buy order data intended quantity is not set to 100." << std::endl;
     EXPECT_EQ(strategy.get_active_buy_order_data().remaining_qty, 100)
-        << "Active ping buy order data remaining quantity is not set to 100.";
+        << "Active ping buy order data remaining quantity is not set to 100." << std::endl;
     EXPECT_EQ(strategy.get_active_buy_order_data().is_ioc, false)
-        << "Active ping buy order data is ioc is not set to false.";
+        << "Active ping buy order data is ioc is not set to false." << std::endl;
 }
 
 /**
