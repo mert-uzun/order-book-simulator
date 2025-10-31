@@ -50,6 +50,7 @@ add_executable(AllTests
     tests/test_orderbook.cpp
     tests/test_metrics.cpp
     tests/test_latency.cpp
+    tests/test_strategy.cpp
 )
 
 # Link the test executable with the library and GoogleTests framework + main
