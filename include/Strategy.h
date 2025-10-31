@@ -49,7 +49,7 @@ class Strategy {
         };
         State state;
     public:
-        Strategy(OrderBook&, long long, long long, long long, long long, long long);
+        Strategy(OrderBook& orderbook, long long quote_size, long long tick_offset, long long max_inv, long long cancel_threshold, long long cooldown_between_requotes);
         ~Strategy();
         
         void observe_the_market(long long timestamp, long long market_price);
@@ -91,8 +91,8 @@ class Strategy {
         
         State get_state() const { return state; }
 
-        Metrics::OrderCacheData get_active_buy_order_data();
-        Metrics::OrderCacheData get_active_sell_order_data();
+        Metrics::OrderCacheData& get_active_buy_order_data();
+        Metrics::OrderCacheData& get_active_sell_order_data();
 
         Metrics& get_metrics() { return metrics; }
 

@@ -178,7 +178,7 @@ void Strategy::check_and_fill_pongs(long long market_price, long long timestamp_
     }
 }
 
-Metrics::OrderCacheData Strategy::get_active_buy_order_data() {
+Metrics::OrderCacheData& Strategy::get_active_buy_order_data() {
     if (active_buy_order_id != -1) {
         return metrics.order_cache.find(active_buy_order_id)->second;
     }
@@ -187,7 +187,7 @@ Metrics::OrderCacheData Strategy::get_active_buy_order_data() {
     }
 }
 
-Metrics::OrderCacheData Strategy::get_active_sell_order_data() {
+Metrics::OrderCacheData& Strategy::get_active_sell_order_data() {
     if (active_sell_order_id != -1) {
         return metrics.order_cache.find(active_sell_order_id)->second;
     }
