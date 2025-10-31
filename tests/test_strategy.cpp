@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "../include/Strategy.h"
 #include "LatencyQueue.h"
+#include "OrderBook.h"
 
 // Below are the default values of strategy parameters for this test suite
 // quote_size = 100,
@@ -434,24 +435,73 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
 
 /**
     ============================================================
-    TEST 6: CancelOnMarketMove
+    TEST 6: CancelMechanismCorrectBoundChecking
     ============================================================
     PURPOSE: When market moves beyond cancel_threshold, verify active orders get cancelled
     ============================================================
 */
 TEST(StrategyTest, CancelOnMarketMove) {
-    
-}
+    OrderBook orderbook;
+    Strategy strategy(orderbook, 100, 2, 1000, 3, 500000);
 
-/**
-    ============================================================
-    TEST 7: NoCancelWithinThreshold
-    ============================================================
-    PURPOSE: When market moves but stays within threshold, orders should NOT be cancelled
-    ============================================================
-*/
-TEST(StrategyTest, NoCancelWithinThreshold) {
-    
+    // ========================================
+    // First, observe the market, place a ping buy and a ping sell order.
+    // ========================================
+    strategy.observe_the_market(1000, 1000);
+    strategy.place_ping_buy(1500);
+    strategy.place_ping_ask(1500);
+    strategy.execute_latency_queue(2000);
+
+    // ========================================
+    // Now we will change the market price to 1003, then 997 and try to cancel the orders to check if they are incorrectly cancelled.
+    // ========================================
+    strategy.observe_the_market(2000, 1003);
+    strategy.cancel_mechanism(2500);
+    strategy.execute_latency_queue(3000);
+
+    EXPECT_NE(strategy.get_active_buy_order_id(), -1)
+        << "Active buy order id should not be -1 because order should not be cancelled. Market didn't move enough to cancel the previous pings." << std::endl;
+    EXPECT_NE(strategy.get_active_sell_order_id(), -1)
+        << "Active sell order id should not be -1 because order should not be cancelled. Market didn't move enough to cancel the previous pings." << std::endl;
+    EXPECT_EQ(orderbook.get_buys().size(), 1)
+        << "Buy order is incorrectly removed from the orderbook. Meaning cancelling executed incorrectly." << std::endl;
+    EXPECT_EQ(orderbook.get_sells().size(), 1)
+        << "Sell order is incorrectly removed from the orderbook. Meaning cancelling executed incorrectly." << std::endl;
+    EXPECT_EQ(strategy.get_metrics().order_cache.size(), 2)
+        << "Order cache size should be 2 because both orders should be in the order cache. Current size: " << strategy.get_metrics().order_cache.size() << ". Meaning cancelling executed incorrectly." << std::endl;
+
+    strategy.observe_the_market(3000, 997);
+    strategy.cancel_mechanism(3500);
+    strategy.execute_latency_queue(4000);
+
+    EXPECT_NE(strategy.get_active_buy_order_id(), -1)
+        << "Active buy order id should not be -1 because order should not be cancelled. Market didn't move enough to cancel the previous pings." << std::endl;
+    EXPECT_NE(strategy.get_active_sell_order_id(), -1)
+        << "Active sell order id should not be -1 because order should not be cancelled. Market didn't move enough to cancel the previous pings." << std::endl;
+    EXPECT_EQ(orderbook.get_buys().size(), 1)
+        << "Buy order is incorrectly removed from the orderbook. Meaning cancelling executed incorrectly." << std::endl;
+    EXPECT_EQ(orderbook.get_sells().size(), 1)
+        << "Sell order is incorrectly removed from the orderbook. Meaning cancelling executed incorrectly." << std::endl;
+    EXPECT_EQ(strategy.get_metrics().order_cache.size(), 2)
+        << "Order cache size should be 2 because both orders should be in the order cache. Current size: " << strategy.get_metrics().order_cache.size() << ". Meaning cancelling executed incorrectly." << std::endl;
+
+    // ========================================
+    // Now we move market enough from the initial price 1000 -> 1004, and call cancel mechanism. This should cancel the current ping orders.
+    // ========================================
+    strategy.observe_the_market(4000, 1004);
+    strategy.cancel_mechanism(4500);
+    strategy.execute_latency_queue(5000);
+
+    EXPECT_EQ(strategy.get_active_buy_order_id(), -1)
+        << "Active buy order id should be -1 because order should be cancelled. Market moved enough to cancel the previous pings." << std::endl;
+    EXPECT_EQ(strategy.get_active_sell_order_id(), -1)
+        << "Active sell order id should be -1 because order should be cancelled. Market moved enough to cancel the previous pings." << std::endl;
+    EXPECT_EQ(orderbook.get_buys().size(), 0)
+        << "Buy order should be removed from the orderbook because it should be cancelled. Current size: " << orderbook.get_buys().size() << "." << std::endl;
+    EXPECT_EQ(orderbook.get_sells().size(), 0)
+        << "Sell order should be removed from the orderbook because it should be cancelled. Current size: " << orderbook.get_sells().size() << "." << std::endl;
+    EXPECT_EQ(strategy.get_metrics().order_cache.size(), 0)
+        << "Order cache size should be 0 because both orders should be cancelled. Current size: " << strategy.get_metrics().order_cache.size() << "." << std::endl;
 }
 
 /**
