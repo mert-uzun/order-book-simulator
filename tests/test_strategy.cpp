@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "../include/Strategy.h"
+#include "LatencyQueue.h"
 
 // Below are the default values of strategy parameters for this test suite
 // quote_size = 100,
@@ -282,7 +283,153 @@ TEST(StrategyTest, InventoryLimitsRespected) {
     ============================================================
 */
 TEST(StrategyTest, CooldownBetweenRequotes) {
+    OrderBook orderbook;
+    Strategy strategy(orderbook, 100, 2, 1000, 3, 500000);
+
+    // ========================================
+    // In this test, we will first place a ping buy order and execute it. Then try to place another buy without respecting the cooldown. Second order should not be added.
+    // We will test this for all scenarios:
+    // 1. First bid then bid
+    // 2. First bid then ask
+    // 3. First ask then bid
+    // 4. First ask then ask
+    // ========================================
+
+    // ========================================
+    // First Scenario: First Bid Then Bid
+    // ========================================
+    strategy.observe_the_market(1000, 1000);
+    strategy.place_ping_buy(1500);
+    strategy.execute_latency_queue(2000);
+
+    EXPECT_EQ(orderbook.get_buys().size(), 1)
+        << "Buy order is not placed into the orderbook." << std::endl;
+    EXPECT_NE(strategy.get_active_buy_order_id(), -1)
+        << "Active buy order id is still -1 after placing a ping buy order." << std::endl;
+
+    // Try to place the second order -> bid
+    strategy.place_ping_buy(2500); // Should not be placed since cooldown is not respected
+
+    EXPECT_EQ(strategy.get_latency_queue().get_event_queue().size(), 0)
+        << "Place ping buy event is added to the event queue but it should not be counted since cooldown is not respected." << std::endl;
+
+    // Fill the order manually to clear for the next scenario
+    Trade trade;
+    trade.buyOrderId = strategy.get_active_buy_order_id();
+    trade.sellOrderId = -1;
+    trade.priceTick = 1000 - 2;
+    trade.quantity = 100;
+    trade.timestampUs = 2501;
+    trade.was_instant = false;
+    strategy.on_fill(trade);
+    strategy.execute_latency_queue(3000);
+
+    EXPECT_EQ(strategy.get_active_buy_order_id(), -1)
+        << "Active buy order id is not -1 after filling the order." << std::endl;
+    EXPECT_EQ(orderbook.get_buys().size(), 0)
+        << "Buy order is not removed from the orderbook after filling." << std::endl;
+
+    // ========================================
+    // Second Scenario: First Bid Then Ask
+    // ========================================
+    strategy.observe_the_market(3000, 1000);
+    strategy.place_ping_buy(3500);
+    strategy.execute_latency_queue(4000);
+
+    EXPECT_EQ(orderbook.get_buys().size(), 1)
+        << "Buy order is not placed into the orderbook." << std::endl;
+    EXPECT_NE(strategy.get_active_buy_order_id(), -1)
+        << "Active buy order id is still -1 after placing a ping buy order." << std::endl;
+
+    // Try to place the second order -> ask
+    strategy.place_ping_ask(4500); // Should not be placed since cooldown is not respected
+
+    EXPECT_EQ(strategy.get_latency_queue().get_event_queue().size(), 0)
+        << "Place ping ask event is added to the event queue but it should not be counted since cooldown is not respected." << std::endl;
+
+    // Fill the order manually to clear for the next scenario
+    Trade trade2;
+    trade2.buyOrderId = strategy.get_active_buy_order_id();
+    trade2.sellOrderId = -1;
+    trade2.priceTick = 1000 - 2;
+    trade2.quantity = 100;
+    trade2.timestampUs = 4501;
+    trade2.was_instant = false;
+    strategy.on_fill(trade2);
+    strategy.execute_latency_queue(5000);
+
+    EXPECT_EQ(strategy.get_active_buy_order_id(), -1)
+        << "Active buy order id is not -1 after filling the order." << std::endl;
+    EXPECT_EQ(orderbook.get_buys().size(), 0)
+        << "Buy order is not removed from the orderbook after filling." << std::endl;
+
+    // ========================================
+    // Third Scenario: First Ask Then Bid
+    // ========================================
+    strategy.observe_the_market(5000, 1000);
+    strategy.place_ping_ask(5500);
+    strategy.execute_latency_queue(6000);
+
+    EXPECT_EQ(orderbook.get_sells().size(), 1)
+        << "Sell order is not placed into the orderbook." << std::endl;
+    EXPECT_NE(strategy.get_active_sell_order_id(), -1)
+        << "Active sell order id is still -1 after placing a ping ask order." << std::endl;
+
+    // Try to place the second order -> bid
+    strategy.place_ping_buy(6500); // Should not be placed since cooldown is not respected
+
+    EXPECT_EQ(strategy.get_latency_queue().get_event_queue().size(), 0)
+        << "Place ping buy event is added to the event queue but it should not be counted since cooldown is not respected." << std::endl;
+
+    // Fill the order manually to clear for the next scenario
+    Trade trade3;
+    trade3.buyOrderId = -1;
+    trade3.sellOrderId = strategy.get_active_sell_order_id();
+    trade3.priceTick = 1000 + 2;
+    trade3.quantity = 100;
+    trade3.timestampUs = 6501;
+    trade3.was_instant = false;
+    strategy.on_fill(trade3);
+    strategy.execute_latency_queue(7000);
+
+    EXPECT_EQ(strategy.get_active_sell_order_id(), -1)
+        << "Active sell order id is not -1 after filling the order." << std::endl;
+    EXPECT_EQ(orderbook.get_sells().size(), 0)
+        << "Sell order is not removed from the orderbook after filling." << std::endl;
+
+    // ========================================
+    // Fourth Scenario: First Ask Then Ask
+    // ========================================
+    strategy.observe_the_market(7000, 1000);
+    strategy.place_ping_ask(7500);
+    strategy.execute_latency_queue(8000);
+
+    EXPECT_EQ(orderbook.get_sells().size(), 1)
+        << "Sell order is not placed into the orderbook." << std::endl;
+    EXPECT_NE(strategy.get_active_sell_order_id(), -1)
+        << "Active sell order id is still -1 after placing a ping ask order." << std::endl;
+
+    // Try to place the second order -> ask
+    strategy.place_ping_ask(8500); // Should not be placed since cooldown is not respected
+
+    EXPECT_EQ(strategy.get_latency_queue().get_event_queue().size(), 0)
+        << "Place ping ask event is added to the event queue but it should not be counted since cooldown is not respected." << std::endl;
     
+    // Fill the order manually to clear the market
+    Trade trade4;
+    trade4.buyOrderId = -1;
+    trade4.sellOrderId = strategy.get_active_sell_order_id();
+    trade4.priceTick = 1000 + 2;
+    trade4.quantity = 100;
+    trade4.timestampUs = 8501;
+    trade4.was_instant = false;
+    strategy.on_fill(trade4);
+    strategy.execute_latency_queue(9000);
+
+    EXPECT_EQ(strategy.get_active_sell_order_id(), -1)
+        << "Active sell order id is not -1 after filling the order." << std::endl;
+    EXPECT_EQ(orderbook.get_sells().size(), 0)
+        << "Sell order is not removed from the orderbook after filling." << std::endl;
 }
 
 /**
