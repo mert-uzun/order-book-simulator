@@ -92,9 +92,6 @@ TEST(LatencyQueueTest, CustomLatencyProfileSetting) {
 
     EXPECT_EQ(latency_queue.get_latency_boundaries().market_update_max, 160)
         << "Market update max should be 150 initially. Result: " << latency_queue.get_latency_boundaries().market_update_max << std::endl;
-
-
-    
 }
 
 /**

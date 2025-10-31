@@ -212,7 +212,66 @@ TEST(StrategyTest, PlacePingOrders) {
     ============================================================
 */
 TEST(StrategyTest, InventoryLimitsRespected) {
+    OrderBook orderbook;
+    Strategy strategy(orderbook, 100, 2, 1000, 3, 500000);
+
+    // MARKET PRICE IS ASSUMED TO BE 1000
+
+    // ========================================
+    // First, we will place and fill 10 ping sell orders manually in metrics, since strategy directly uses metrics.position as current inventory count
+    // ========================================
+    for (int i = 0; i < 10; i++) {
+        strategy.get_metrics().on_order_placed(1000 + i, Metrics::Side::BUYS, 1000 - 2, 1050, 100, false);
+        strategy.get_metrics().on_fill(1000 + i, 1000 - 2, 1150, 100, false);
+    }
+
+    EXPECT_EQ(strategy.get_metrics().get_position(), 1000)
+        << "Position is not correctly updated. Expected: 1000, Result: " << strategy.get_metrics().get_position() << std::endl;
+
+    strategy.observe_the_market(2000, 1000); // Officially set curret market price to 1000
+    strategy.execute_latency_queue(2500); // This executes the observe_the_market action
+
+    // Record the order cache size before trying to add the order
+    int order_cache_size_before_trying_to_ping_bid = strategy.get_metrics().order_cache.size();
+
+    strategy.place_ping_buy(3000); // This should not place any order since inventory is full
+
+    EXPECT_EQ(strategy.get_latency_queue().get_event_queue().size(), 0)
+    << "Place ping buy event is added to the event queue whereas it should not be counted since system is at inventory limit." << std::endl;
+
+    // Try to execute non-existing order placement event, it shouldn't change anything
+    strategy.execute_latency_queue(3500);
+
+    EXPECT_EQ(strategy.get_metrics().order_cache.size(), order_cache_size_before_trying_to_ping_bid)
+        << "Order cache size changed after executing the placement of a buy order that shouldn't be placed at first." << std::endl;
     
+    // ========================================
+    // Now reverse, we will exhaust the limit by manually filling 20 ping sell orders directly in metrics. Making our final position -1000
+    // ========================================
+    for (int i = 0; i < 20; i++) {
+        strategy.get_metrics().on_order_placed(1000 - i, Metrics::Side::SELLS, 1000 + 2, 4050, 100, false);
+        strategy.get_metrics().on_fill(1000 - i, 1000 + 2, 4150, 100, false);
+    }
+
+    EXPECT_EQ(strategy.get_metrics().get_position(), -1000)
+        << "Position is not correctly updated. Expected: -1000, Result: " << strategy.get_metrics().get_position() << std::endl;
+
+    strategy.observe_the_market(5000, 1000); // Officially set curret market price to 1000 again
+    strategy.execute_latency_queue(5500); // This executes the observe_the_market action
+
+    // Record the order cache size before trying to add the order
+    int order_cache_size_before_trying_to_ping_ask = strategy.get_metrics().order_cache.size();
+
+    strategy.place_ping_ask(6000); // This should not place any order since inventory is full
+
+    EXPECT_EQ(strategy.get_latency_queue().get_event_queue().size(), 0)
+        << "Place ping ask event is added to the event queue whereas it should not be counted since system is at inventory limit." << std::endl;
+
+    // Try to execute non-existing order placement event, it shouldn't change anything
+    strategy.execute_latency_queue(6500);
+
+    EXPECT_EQ(strategy.get_metrics().order_cache.size(), order_cache_size_before_trying_to_ping_ask)
+        << "Order cache size changed after executing the placement of a sell order that shouldn't be placed at first." << std::endl;
 }
 
 /**

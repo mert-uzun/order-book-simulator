@@ -100,6 +100,7 @@ class Strategy {
         std::priority_queue<PongOrderData, std::vector<PongOrderData>, std::greater<PongOrderData>>& get_sell_pongs() { return sell_pongs; }
         
         LatencyQueue& get_latency_queue() { return latency_queue; }
+        
         // Setters
         void set_quote_size(long long value) { 
             if (value > 0) {
