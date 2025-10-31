@@ -504,6 +504,8 @@ TEST(StrategyTest, CancelOnMarketMove) {
         << "Order cache size should be 0 because both orders should be cancelled. Current size: " << strategy.get_metrics().order_cache.size() << "." << std::endl;
 }
 
+// TODO: YOU DIDN'T ACCOUNT FOR PONGS IN PREVIOUS TESTS WHILE CHECKING THE SIZE
+
 /**
     ============================================================
     TEST 8: PongOnPingBuyFill
@@ -511,3 +513,53 @@ TEST(StrategyTest, CancelOnMarketMove) {
     PURPOSE: When a ping buy fills, verify pong sell order is placed at fill_price + 1
     ============================================================
 */
+TEST(StrategyTest, PongOnPingBuyFill) {
+    OrderBook orderbook;
+    Strategy strategy(orderbook, 100, 2, 1000, 3, 500000);
+
+    // ========================================
+    // In this test, we will place a ping order first and fill it manually, then check if a pong sell order exists in the orderbook with correct data. Then we will test it the other way around.
+    // ========================================
+
+    // Observe the market and place a ping buy order
+    strategy.observe_the_market(1000, 1000);
+    strategy.place_ping_buy(1500);
+    strategy.execute_latency_queue(2000);
+
+    // Manually fill the ping buy order
+    Trade trade1;
+    trade1.buyOrderId = strategy.get_active_buy_order_id();
+    trade1.sellOrderId = -1;
+    trade1.priceTick = 1000 - 2;
+    trade1.quantity = 100;
+    trade1.timestampUs = 1501;
+    trade1.was_instant = false;
+    strategy.on_fill(trade1);
+    strategy.execute_latency_queue(2500);
+
+    // Now check if a pong sell order with correct data exists
+    EXPECT_EQ(orderbook.get_sells().size(), 1)
+        << "Pong sell order is not placed into the orderbook." << std::endl;
+    EXPECT_EQ(strategy.get_active_sell_order_data(), -1)
+        << "Pong order is NOT the active sell order, meaning active_sell_order_id should stay -1." << std::endl;
+
+    Order& pong_sell_order = orderbook.get_sells().begin()->second.front();
+    EXPECT_EQ(pong_sell_order.priceTick, 1000 - 2 + 1)
+        << "Pong sell order price tick is not correct. Expected: " << 1000 - 2 + 1 << ", Result: " << pong_sell_order.priceTick << "." << std::endl;
+    EXPECT_EQ(pong_sell_order.quantity, 100)
+        << "Pong sell order quantity is not correct. Expected: 100, Result: " << pong_sell_order.quantity << "." << std::endl;
+    EXPECT_EQ(pong_sell_order.isBuy, false)
+        << "Pong sell order isBuy is not correct. Expected: false, Result: " << pong_sell_order.isBuy << "." << std::endl;
+    EXPECT_EQ(pong_sell_order.isActive, true)
+        << "Pong sell order isActive is not correct. Expected: true, Result: " << pong_sell_order.isActive << "." << std::endl;
+    EXPECT_GE(pong_sell_order.tsCreatedUs, 2500)
+        << "Pong sell order tsCreatedUs is not correct. Expected: >= 2500, Result: " << pong_sell_order.tsCreatedUs << "." << std::endl;
+    EXPECT_GE(pong_sell_order.tsLastUpdateUs, 2500)
+        << "Pong sell order tsLastUpdateUs is not correct. Expected: >= 2500, Result: " << pong_sell_order.tsLastUpdateUs << "." << std::endl;
+
+    // ========================================
+    // Other way around, place a ping sell order and fill it manually, then check if a pong buy is placed correctly.
+    // ========================================
+
+
+}
