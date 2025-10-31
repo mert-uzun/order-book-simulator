@@ -39,7 +39,7 @@ class Strategy {
 
         long long active_buy_order_id;
         long long active_sell_order_id;
-        long long last_pinged_mid_price_ticks;
+        long long last_pinged_market_price_ticks;
         long long last_quote_time_us;
 
         enum class State {
@@ -86,7 +86,7 @@ class Strategy {
         
         long long get_active_buy_order_id() const { return active_buy_order_id; }
         long long get_active_sell_order_id() const { return active_sell_order_id; }
-        long long get_last_pinged_mid_price_ticks() const { return last_pinged_mid_price_ticks; }
+        long long get_last_pinged_mid_price_ticks() const { return last_pinged_market_price_ticks; }
         long long get_last_quote_time_us() const { return last_quote_time_us; }
         
         State get_state() const { return state; }
@@ -100,7 +100,7 @@ class Strategy {
         std::priority_queue<PongOrderData, std::vector<PongOrderData>, std::greater<PongOrderData>>& get_sell_pongs() { return sell_pongs; }
         
         LatencyQueue& get_latency_queue() { return latency_queue; }
-        
+
         // Setters
         void set_quote_size(long long value) { 
             if (value > 0) {
@@ -124,7 +124,7 @@ class Strategy {
         void set_active_sell_order_id(long long value) { active_sell_order_id = value; }
         void set_last_pinged_mid_price_ticks(long long value) { 
             if (value > 0) {
-                last_pinged_mid_price_ticks = value; 
+                last_pinged_market_price_ticks = value; 
             }
         }
         void set_last_quote_time_us(long long value) { 
