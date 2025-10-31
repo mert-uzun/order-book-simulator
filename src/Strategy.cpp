@@ -120,7 +120,7 @@ void Strategy::on_fill(const Trade& trade) {
             }
 
             latency_queue.schedule_event(ack_exec_time, LatencyQueue::ActionType::ORDER_SEND, [this, trade](long long exec_time) {
-                long long pong_order_id = order_book.add_limit_order(false, trade.priceTick + 1, trade.quantity,  exec_time);
+                long long pong_order_id = order_book.add_limit_order(false, trade.priceTick + 1, trade.quantity, exec_time);
                 sell_pongs.emplace(trade.priceTick + 1, std::pair<long long, int>(pong_order_id, trade.quantity));
                 metrics.on_order_placed(pong_order_id, Metrics::Side::SELLS, trade.priceTick + 1, exec_time, trade.quantity, false);
             });            

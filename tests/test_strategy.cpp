@@ -537,6 +537,14 @@ TEST(StrategyTest, PongOnPingBuyFill) {
     strategy.on_fill(trade1);
     strategy.execute_latency_queue(2500);
 
+    // Check if the ping buy is gone
+    EXPECT_EQ(strategy.get_active_buy_order_id(), -1)
+        << "Ping buy order should be removed from the orderbook because it should be filled. Current size: " << orderbook.get_buys().size() << "." << std::endl;
+    EXPECT_EQ(orderbook.get_buys().size(), 0)
+        << "Ping buy order should be removed from the orderbook because it should be filled. Current size: " << orderbook.get_buys().size() << "." << std::endl;
+    EXPECT_EQ(strategy.get_metrics().order_cache.size(), 0)
+        << "Ping buy order should be removed from the orderbook because it should be filled. Current size: " << strategy.get_metrics().order_cache.size() << "." << std::endl;
+
     // Now check if a pong sell order with correct data exists
     EXPECT_EQ(orderbook.get_sells().size(), 1)
         << "Pong sell order is not placed into the orderbook." << std::endl;
@@ -552,14 +560,58 @@ TEST(StrategyTest, PongOnPingBuyFill) {
         << "Pong sell order isBuy is not correct. Expected: false, Result: " << pong_sell_order.isBuy << "." << std::endl;
     EXPECT_EQ(pong_sell_order.isActive, true)
         << "Pong sell order isActive is not correct. Expected: true, Result: " << pong_sell_order.isActive << "." << std::endl;
-    EXPECT_GE(pong_sell_order.tsCreatedUs, 2500)
-        << "Pong sell order tsCreatedUs is not correct. Expected: >= 2500, Result: " << pong_sell_order.tsCreatedUs << "." << std::endl;
-    EXPECT_GE(pong_sell_order.tsLastUpdateUs, 2500)
-        << "Pong sell order tsLastUpdateUs is not correct. Expected: >= 2500, Result: " << pong_sell_order.tsLastUpdateUs << "." << std::endl;
+    EXPECT_GE(pong_sell_order.tsCreatedUs, 1501)
+        << "Pong sell order tsCreatedUs is not correct. Expected: >= 1501, Result: " << pong_sell_order.tsCreatedUs << "." << std::endl;
+    EXPECT_GE(pong_sell_order.tsLastUpdateUs, 1501)
+        << "Pong sell order tsLastUpdateUs is not correct. Expected: >= 1501, Result: " << pong_sell_order.tsLastUpdateUs << "." << std::endl;
 
     // ========================================
     // Other way around, place a ping sell order and fill it manually, then check if a pong buy is placed correctly.
     // ========================================
+    // Remember we now have a pong sell order at price 1000 - 2 + 1 = 999 resting in the orderbook. So be careful of that.
+    // ========================================
 
+    // Observe the market and place a ping sell order
+    strategy.observe_the_market(3000, 1000);
+    strategy.place_ping_ask(3500);
+    strategy.execute_latency_queue(4000);
 
+    // Manually fill the ping sell order
+    Trade trade2;
+    trade2.buyOrderId = -1;
+    trade2.sellOrderId = strategy.get_active_sell_order_id();
+    trade2.priceTick = 1000 + 2;
+    trade2.quantity = 100;
+    trade2.timestampUs = 3501;
+    trade2.was_instant = false;
+    strategy.on_fill(trade2);
+    strategy.execute_latency_queue(4500);
+
+    // Check if the ping buy is gone
+    EXPECT_EQ(strategy.get_active_sell_order_id(), -1)
+        << "Ping sell order should be removed from the orderbook because it should be filled. Current size: " << orderbook.get_sells().size() << "." << std::endl;
+    EXPECT_EQ(orderbook.get_sells().size(), 1) // 1 from the previous test's pong
+        << "Ping sell order should be removed from the orderbook because it should be filled. Current size: " << orderbook.get_sells().size() << "." << std::endl;
+    EXPECT_EQ(strategy.get_metrics().order_cache.size(), 1) // 1 from the previous test's pong
+        << "Ping sell order should be removed from the orderbook because it should be filled. Current size: " << strategy.get_metrics().order_cache.size() << "." << std::endl;
+
+    // Now check if a pong buy order with correct data exists
+    EXPECT_EQ(orderbook.get_buys().size(), 1)
+        << "Pong buy order is not placed into the orderbook." << std::endl;
+    EXPECT_EQ(strategy.get_active_buy_order_data(), -1)
+        << "Pong order is NOT the active buy order, meaning active_buy_order_id should stay -1." << std::endl;
+
+    Order& pong_buy_order = orderbook.get_buys().begin()->second.front();
+    EXPECT_EQ(pong_buy_order.priceTick, 1000 + 2 - 1)
+        << "Pong buy order price tick is not correct. Expected: " << 1000 + 2 - 1 << ", Result: " << pong_buy_order.priceTick << "." << std::endl;
+    EXPECT_EQ(pong_buy_order.quantity, 100)
+        << "Pong buy order quantity is not correct. Expected: 100, Result: " << pong_buy_order.quantity << "." << std::endl;
+    EXPECT_EQ(pong_buy_order.isBuy, true)
+        << "Pong buy order isBuy is not correct. Expected: true, Result: " << pong_buy_order.isBuy << "." << std::endl;
+    EXPECT_EQ(pong_buy_order.isActive, true)
+        << "Pong buy order isActive is not correct. Expected: true, Result: " << pong_buy_order.isActive << "." << std::endl;
+    EXPECT_GE(pong_buy_order.tsCreatedUs, 3501)
+        << "Pong buy order tsCreatedUs is not correct. Expected: >= 3501, Result: " << pong_buy_order.tsCreatedUs << "." << std::endl;
+    EXPECT_GE(pong_buy_order.tsLastUpdateUs, 3501)
+        << "Pong buy order tsLastUpdateUs is not correct. Expected: >= 3501, Result: " << pong_buy_order.tsLastUpdateUs << "." << std::endl;
 }
