@@ -322,7 +322,7 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
     trade.quantity = 100;
     trade.timestampUs = 2501;
     trade.was_instant = false;
-    strategy.on_fill(trade);
+    strategy.on_fill(trade); // This adds a pong sell order to orderbook.sells
     strategy.execute_latency_queue(3000);
 
     EXPECT_EQ(strategy.get_active_buy_order_id(), -1)
@@ -356,7 +356,7 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
     trade2.quantity = 100;
     trade2.timestampUs = 4501;
     trade2.was_instant = false;
-    strategy.on_fill(trade2);
+    strategy.on_fill(trade2); // This adds a pong sell order to orderbook.sells
     strategy.execute_latency_queue(5000);
 
     EXPECT_EQ(strategy.get_active_buy_order_id(), -1)
@@ -371,7 +371,7 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
     strategy.place_ping_ask(5500);
     strategy.execute_latency_queue(6000);
 
-    EXPECT_EQ(orderbook.get_sells().size(), 1)
+    EXPECT_EQ(orderbook.get_sells().size(), 1 + 2) // +2 from previous pongs
         << "Sell order is not placed into the orderbook." << std::endl;
     EXPECT_NE(strategy.get_active_sell_order_id(), -1)
         << "Active sell order id is still -1 after placing a ping ask order." << std::endl;
@@ -390,12 +390,12 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
     trade3.quantity = 100;
     trade3.timestampUs = 6501;
     trade3.was_instant = false;
-    strategy.on_fill(trade3);
+    strategy.on_fill(trade3); // This adds a pong buy order to orderbook.buys
     strategy.execute_latency_queue(7000);
 
     EXPECT_EQ(strategy.get_active_sell_order_id(), -1)
         << "Active sell order id is not -1 after filling the order." << std::endl;
-    EXPECT_EQ(orderbook.get_sells().size(), 0)
+    EXPECT_EQ(orderbook.get_sells().size(), 2) // +2 from previous pongs
         << "Sell order is not removed from the orderbook after filling." << std::endl;
 
     // ========================================
@@ -405,7 +405,7 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
     strategy.place_ping_ask(7500);
     strategy.execute_latency_queue(8000);
 
-    EXPECT_EQ(orderbook.get_sells().size(), 1)
+    EXPECT_EQ(orderbook.get_sells().size(), 1 + 2) // +2 from previous pongs
         << "Sell order is not placed into the orderbook." << std::endl;
     EXPECT_NE(strategy.get_active_sell_order_id(), -1)
         << "Active sell order id is still -1 after placing a ping ask order." << std::endl;
@@ -424,12 +424,12 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
     trade4.quantity = 100;
     trade4.timestampUs = 8501;
     trade4.was_instant = false;
-    strategy.on_fill(trade4);
+    strategy.on_fill(trade4); // This adds another pong buy order to orderbook.buys
     strategy.execute_latency_queue(9000);
 
     EXPECT_EQ(strategy.get_active_sell_order_id(), -1)
         << "Active sell order id is not -1 after filling the order." << std::endl;
-    EXPECT_EQ(orderbook.get_sells().size(), 0)
+    EXPECT_EQ(orderbook.get_sells().size(), 2) // +2 from previous pongs
         << "Sell order is not removed from the orderbook after filling." << std::endl;
 }
 
@@ -503,8 +503,6 @@ TEST(StrategyTest, CancelOnMarketMove) {
     EXPECT_EQ(strategy.get_metrics().order_cache.size(), 0)
         << "Order cache size should be 0 because both orders should be cancelled. Current size: " << strategy.get_metrics().order_cache.size() << "." << std::endl;
 }
-
-// TODO: YOU DIDN'T ACCOUNT FOR PONGS IN PREVIOUS TESTS WHILE CHECKING THE SIZE
 
 /**
     ============================================================
