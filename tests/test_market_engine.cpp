@@ -112,19 +112,10 @@ TEST(MarketEngineTest, SubmitSingleSellOrder) {
         << "The sell order quantity should be 100 after submitting a sell order. Current quantity: " << marketengine.get_orderbook().get_sells().begin()->second.front().quantity << "." << std::endl;
 }
 
-/**
-    ============================================================
-    TEST 4: SimpleMatchBuyAndSell
-    ============================================================
-    PURPOSE: Verify a simple buy and sell order at the same price are matched correctly.
-    ============================================================
-*/
-TEST(MarketEngineTest, SimpleMatchBuyAndSell) {
-}
 
 /**
     ============================================================
-    TEST 5: NoMatchDifferentPrices
+    TEST 4: NoMatchDifferentPrices
     ============================================================
     PURPOSE: Verify that a buy and sell order with a price gap do not get matched.
     ============================================================
@@ -134,7 +125,7 @@ TEST(MarketEngineTest, NoMatchDifferentPrices) {
 
 /**
     ============================================================
-    TEST 6: PartialFillMarketOrder
+    TEST 5: PartialFillMarketOrder
     ============================================================
     PURPOSE: Verify a larger market order is partially filled by a smaller limit order.
     ============================================================
@@ -144,7 +135,7 @@ TEST(MarketEngineTest, PartialFillMarketOrder) {
 
 /**
     ============================================================
-    TEST 7: FullFillMultipleLimitOrders
+    TEST 6: FullFillMultipleLimitOrders
     ============================================================
     PURPOSE: Verify a market order is fully filled by multiple smaller limit orders.
     ============================================================
@@ -154,7 +145,7 @@ TEST(MarketEngineTest, FullFillMultipleLimitOrders) {
 
 /**
     ============================================================
-    TEST 8: CancelOrder
+    TEST 7: CancelOrder
     ============================================================
     PURPOSE: Verify an existing order can be cancelled and is removed from the order book.
     ============================================================
@@ -164,7 +155,7 @@ TEST(MarketEngineTest, CancelOrder) {
 
 /**
     ============================================================
-    TEST 9: CancelNonExistentOrder
+    TEST 8: CancelNonExistentOrder
     ============================================================
     PURPOSE: Verify that attempting to cancel a non-existent order has no effect.
     ============================================================
@@ -174,7 +165,7 @@ TEST(MarketEngineTest, CancelNonExistentOrder) {
 
 /**
     ============================================================
-    TEST 10: MarketPriceCalculation
+    TEST 9: MarketPriceCalculation
     ============================================================
     PURPOSE: Verify the market price (mid-price) is calculated correctly after new orders are added.
     ============================================================
