@@ -7,7 +7,7 @@
 Strategy::Strategy(OrderBook& orderbook, int quote_size, long long tick_offset, long long max_inv, long long cancel_threshold, long long cooldown_between_requotes) 
                         : metrics(), order_book(orderbook), buy_pongs(), sell_pongs(), latency_queue(), best_bid_ticks(0), best_ask_ticks(0), mid_price_ticks(0), current_market_price_ticks(0), spread_ticks(0),
                         quote_size(quote_size), tick_offset_from_mid(tick_offset), max_inventory(max_inv), cancel_threshold_ticks(cancel_threshold), cooldown_between_requotes(cooldown_between_requotes), 
-                        active_buy_order_id(-1), active_sell_order_id(-1), last_pinged_market_price_ticks(0), last_quote_time_us(-1000000) {}
+                        active_buy_order_id(-1), active_sell_order_id(-1), last_pinged_market_price_ticks(0), last_quote_time_us(0) {}
 
 Strategy::~Strategy() {}
 
@@ -113,7 +113,6 @@ void Strategy::on_fill(const Trade& trade) {
         latency_queue.schedule_event(trade.timestampUs, LatencyQueue::ActionType::ACKNOWLEDGE_FILL, [this, trade](long long ack_exec_time) {
             int remaining_qty = metrics.order_cache.find(trade.buyOrderId)->second.remaining_qty - trade.quantity;
             metrics.on_fill(trade.buyOrderId, trade.priceTick, ack_exec_time, trade.quantity, trade.was_instant);
-
             if (remaining_qty == 0 && active_buy_order_id == trade.buyOrderId) {
                 active_buy_order_id = -1;
                 order_book.cancel_order(trade.buyOrderId);
@@ -123,19 +122,17 @@ void Strategy::on_fill(const Trade& trade) {
                 long long pong_order_id = order_book.add_limit_order(false, trade.priceTick + 1, trade.quantity, exec_time);
                 sell_pongs.emplace(trade.priceTick + 1, std::pair<long long, int>(pong_order_id, trade.quantity));
                 metrics.on_order_placed(pong_order_id, Metrics::Side::SELLS, trade.priceTick + 1, exec_time, trade.quantity, false);
-            });            
+            });
         });        
     }
     else if (trade.sellOrderId == active_sell_order_id) {
         latency_queue.schedule_event(trade.timestampUs, LatencyQueue::ActionType::ACKNOWLEDGE_FILL, [this, trade](long long ack_exec_time) {
             int remaining_qty = metrics.order_cache.find(trade.sellOrderId)->second.remaining_qty - trade.quantity;
             metrics.on_fill(trade.sellOrderId, trade.priceTick, ack_exec_time, trade.quantity, trade.was_instant);
-    
             if (remaining_qty == 0 && active_sell_order_id == trade.sellOrderId) {
                 active_sell_order_id = -1;
                 order_book.cancel_order(trade.sellOrderId);
             }
-
             latency_queue.schedule_event(ack_exec_time, LatencyQueue::ActionType::ORDER_SEND, [this, trade](long long exec_time) {
                 long long pong_order_id = order_book.add_limit_order(true, trade.priceTick - 1, trade.quantity, exec_time);
                 buy_pongs.emplace(trade.priceTick - 1, std::pair<long long, int>(pong_order_id, trade.quantity));

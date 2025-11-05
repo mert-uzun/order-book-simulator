@@ -74,7 +74,7 @@ class Strategy {
         long long get_best_bid_ticks() const { return order_book.get_buys().empty() ? 0 : order_book.get_buys().rbegin()->first; }
         long long get_best_ask_ticks() const { return order_book.get_sells().empty() ? 0 : order_book.get_sells().begin()->first; }
         long long get_mid_price_ticks() const { return (best_bid_ticks + best_ask_ticks) / 2; }
-        long long get_current_market_price_ticks() const { return metrics.last_mark_price_ticks; }
+        long long get_current_market_price_ticks() const { return current_market_price_ticks; }
         long long get_current_inventory() const { return metrics.position; }
         long long get_spread_ticks() const { return get_best_ask_ticks() - get_best_bid_ticks(); }
         
@@ -128,7 +128,9 @@ class Strategy {
             }
         }
         void set_last_quote_time_us(long long value) { 
-            last_quote_time_us = value; 
+            if (value > last_quote_time_us) {
+                last_quote_time_us = value;
+            }
         }
         
         void set_state(State value) { state = value; }

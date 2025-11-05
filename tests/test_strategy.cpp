@@ -55,7 +55,7 @@ TEST(StrategyTest, ConstructorInitialization) {
         << "Active sell order id is not -1 after Strategy construction." << std::endl;
     EXPECT_EQ(strategy.get_last_pinged_mid_price_ticks(), 0)
         << "Last mid price ticks is not 0 after Strategy construction." << std::endl;
-    EXPECT_EQ(strategy.get_last_quote_time_us(), -1000000)
+    EXPECT_EQ(strategy.get_last_quote_time_us(), 0)
         << "Last quote time us is not 0 after Strategy construction." << std::endl;
 }
 
@@ -158,7 +158,7 @@ TEST(StrategyTest, SettersAndGetters) {
 */
 TEST(StrategyTest, PlacePingOrders) {
     OrderBook orderbook;
-    Strategy strategy(orderbook, 100, 2, 1000, 3, 500000);
+    Strategy strategy(orderbook, 100, 2, 1000, 3, 0);
 
     // Set market price to 1000
     strategy.observe_the_market(1000, 1000);
@@ -300,8 +300,8 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
     // First Scenario: First Bid Then Bid
     // ========================================
     strategy.observe_the_market(1000, 1000);
-    strategy.place_ping_buy(1500);
-    strategy.execute_latency_queue(2000);
+    strategy.place_ping_buy(500000 + 1500);
+    strategy.execute_latency_queue(500000 + 2000);
 
     EXPECT_EQ(orderbook.get_buys().size(), 1)
         << "Buy order is not placed into the orderbook." << std::endl;
@@ -309,7 +309,7 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
         << "Active buy order id is still -1 after placing a ping buy order." << std::endl;
 
     // Try to place the second order -> bid
-    strategy.place_ping_buy(2500); // Should not be placed since cooldown is not respected
+    strategy.place_ping_buy(500000 + 2500); // Should not be placed since cooldown is not respected
 
     EXPECT_EQ(strategy.get_latency_queue().get_event_queue().size(), 0)
         << "Place ping buy event is added to the event queue but it should not be counted since cooldown is not respected." << std::endl;
@@ -317,13 +317,13 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
     // Fill the order manually to clear for the next scenario
     Trade trade;
     trade.buyOrderId = strategy.get_active_buy_order_id();
-    trade.sellOrderId = -1;
+    trade.sellOrderId = -2;
     trade.priceTick = 1000 - 2;
     trade.quantity = 100;
-    trade.timestampUs = 2501;
+    trade.timestampUs = 500000 + 2501;
     trade.was_instant = false;
     strategy.on_fill(trade); // This adds a pong sell order to orderbook.sells
-    strategy.execute_latency_queue(3000);
+    strategy.execute_latency_queue(500000 + 3000);
 
     EXPECT_EQ(strategy.get_active_buy_order_id(), -1)
         << "Active buy order id is not -1 after filling the order." << std::endl;
@@ -333,10 +333,9 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
     // ========================================
     // Second Scenario: First Bid Then Ask
     // ========================================
-    strategy.set_last_quote_time_us(-1000000); // Set this manueally very far in the past, so add limit orders will pass the cooldown checks.
-    strategy.observe_the_market(3000, 1000);
-    strategy.place_ping_buy(3500);
-    strategy.execute_latency_queue(4000);
+    strategy.observe_the_market(1000000 + 3000, 1000);
+    strategy.place_ping_buy(1000000 + 3500);
+    strategy.execute_latency_queue(1000000 + 4000);
 
     EXPECT_EQ(orderbook.get_buys().size(), 1)
         << "Buy order is not placed into the orderbook." << std::endl;
@@ -344,7 +343,7 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
         << "Active buy order id is still -1 after placing a ping buy order." << std::endl;
 
     // Try to place the second order -> ask
-    strategy.place_ping_ask(4500); // Should not be placed since cooldown is not respected
+    strategy.place_ping_ask(1000000 + 4500); // Should not be placed since cooldown is not respected
 
     EXPECT_EQ(strategy.get_latency_queue().get_event_queue().size(), 0)
         << "Place ping ask event is added to the event queue but it should not be counted since cooldown is not respected." << std::endl;
@@ -352,85 +351,91 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
     // Fill the order manually to clear for the next scenario
     Trade trade2;
     trade2.buyOrderId = strategy.get_active_buy_order_id();
-    trade2.sellOrderId = -1;
+    trade2.sellOrderId = -2;
     trade2.priceTick = 1000 - 2;
     trade2.quantity = 100;
-    trade2.timestampUs = 4501;
+    trade2.timestampUs = 1000000 + 4501;
     trade2.was_instant = false;
     strategy.on_fill(trade2); // This adds a pong sell order to orderbook.sells
-    strategy.execute_latency_queue(5000);
+    strategy.execute_latency_queue(1000000 + 5000);
 
     EXPECT_EQ(strategy.get_active_buy_order_id(), -1)
         << "Active buy order id is not -1 after filling the order." << std::endl;
     EXPECT_EQ(orderbook.get_buys().size(), 0)
         << "Buy order is not removed from the orderbook after filling." << std::endl;
+    EXPECT_EQ(orderbook.get_sells().size(), 1)
+        << "Price level for pongs doesn't exist.";        
 
     // ========================================
-    // Third Scenario: First Ask Then Bid
+    // Third Scenario: First Ask Then BidLet me add some debug output
     // ========================================
-    strategy.observe_the_market(5000, 1000);
-    strategy.place_ping_ask(5500);
-    strategy.execute_latency_queue(6000);
 
-    EXPECT_EQ(orderbook.get_sells().size(), 1 + 2) // +2 from previous pongs
+    strategy.observe_the_market(1500000 + 5000, 1000);
+    strategy.place_ping_ask(1500000 + 5500);
+    strategy.execute_latency_queue(1500000 + 6000);
+
+    EXPECT_EQ(orderbook.get_sells().size(), 2) // 2 price levels should exist
         << "Sell order is not placed into the orderbook." << std::endl;
     EXPECT_NE(strategy.get_active_sell_order_id(), -1)
         << "Active sell order id is still -1 after placing a ping ask order." << std::endl;
 
     // Try to place the second order -> bid
-    strategy.place_ping_buy(6500); // Should not be placed since cooldown is not respected
+    strategy.place_ping_buy(1500000 + 6500); // Should not be placed since cooldown is not respected
 
     EXPECT_EQ(strategy.get_latency_queue().get_event_queue().size(), 0)
         << "Place ping buy event is added to the event queue but it should not be counted since cooldown is not respected." << std::endl;
 
     // Fill the order manually to clear for the next scenario
     Trade trade3;
-    trade3.buyOrderId = -1;
+    trade3.buyOrderId = -2;
     trade3.sellOrderId = strategy.get_active_sell_order_id();
+
     trade3.priceTick = 1000 + 2;
     trade3.quantity = 100;
-    trade3.timestampUs = 6501;
+    trade3.timestampUs = 1500000 + 6501;
     trade3.was_instant = false;
+
     strategy.on_fill(trade3); // This adds a pong buy order to orderbook.buys
-    strategy.execute_latency_queue(7000);
+    strategy.execute_latency_queue(1500000 + 7000);
 
     EXPECT_EQ(strategy.get_active_sell_order_id(), -1)
         << "Active sell order id is not -1 after filling the order." << std::endl;
-    EXPECT_EQ(orderbook.get_sells().size(), 2) // +2 from previous pongs
+    EXPECT_EQ(orderbook.get_sells().size(), 1) // 1 price level should exist because one pong sell (999) is filled with one pong buy (1001) but other pong sell (999) still remains
         << "Sell order is not removed from the orderbook after filling." << std::endl;
 
     // ========================================
     // Fourth Scenario: First Ask Then Ask
     // ========================================
-    strategy.observe_the_market(7000, 1000);
-    strategy.place_ping_ask(7500);
-    strategy.execute_latency_queue(8000);
 
-    EXPECT_EQ(orderbook.get_sells().size(), 1 + 2) // +2 from previous pongs
+    strategy.observe_the_market(2000000 + 7000, 1000);
+    strategy.place_ping_ask(2000000 + 7500);
+    strategy.execute_latency_queue(2000000 + 8000);
+
+    EXPECT_EQ(orderbook.get_sells().size(), 2) // 2 price levels should exist
         << "Sell order is not placed into the orderbook." << std::endl;
     EXPECT_NE(strategy.get_active_sell_order_id(), -1)
         << "Active sell order id is still -1 after placing a ping ask order." << std::endl;
 
     // Try to place the second order -> ask
-    strategy.place_ping_ask(8500); // Should not be placed since cooldown is not respected
+    strategy.place_ping_ask(2000000 + 8500); // Should not be placed since cooldown is not respected
 
     EXPECT_EQ(strategy.get_latency_queue().get_event_queue().size(), 0)
         << "Place ping ask event is added to the event queue but it should not be counted since cooldown is not respected." << std::endl;
     
     // Fill the order manually to clear the market
     Trade trade4;
-    trade4.buyOrderId = -1;
+    trade4.buyOrderId = -2;
     trade4.sellOrderId = strategy.get_active_sell_order_id();
     trade4.priceTick = 1000 + 2;
     trade4.quantity = 100;
-    trade4.timestampUs = 8501;
+    trade4.timestampUs = 2000000 + 8501;
     trade4.was_instant = false;
     strategy.on_fill(trade4); // This adds another pong buy order to orderbook.buys
-    strategy.execute_latency_queue(9000);
+    strategy.execute_latency_queue(2000000 + 9000);
 
     EXPECT_EQ(strategy.get_active_sell_order_id(), -1)
         << "Active sell order id is not -1 after filling the order." << std::endl;
-    EXPECT_EQ(orderbook.get_sells().size(), 2) // +2 from previous pongs
+    EXPECT_EQ(orderbook.get_sells().size(), 0) // 0 price levels should exist because all pongs should be filled with each other, our own pong buys (1001) filled our own pong sells (999)
         << "Sell order is not removed from the orderbook after filling." << std::endl;
 }
 
