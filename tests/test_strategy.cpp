@@ -519,7 +519,7 @@ TEST(StrategyTest, CancelOnMarketMove) {
 */
 TEST(StrategyTest, PongOnPingBuyFill) {
     OrderBook orderbook;
-    Strategy strategy(orderbook, 100, 2, 1000, 3, 500000);
+    Strategy strategy(orderbook, 100, 2, 1000, 3, 0);
 
     // ========================================
     // In this test, we will place a ping order first and fill it manually, then check if a pong sell order exists in the orderbook with correct data. Then we will test it the other way around.
@@ -533,12 +533,13 @@ TEST(StrategyTest, PongOnPingBuyFill) {
     // Manually fill the ping buy order
     Trade trade1;
     trade1.buyOrderId = strategy.get_active_buy_order_id();
-    trade1.sellOrderId = -1;
+    trade1.sellOrderId = -2;
     trade1.priceTick = 1000 - 2;
     trade1.quantity = 100;
     trade1.timestampUs = 1501;
     trade1.was_instant = false;
     strategy.on_fill(trade1);
+    std::cout << "After on_fill: " << orderbook.get_buys().size() << std::endl;
     strategy.execute_latency_queue(2500);
 
     // Check if the ping buy is gone
@@ -582,7 +583,7 @@ TEST(StrategyTest, PongOnPingBuyFill) {
 
     // Manually fill the ping sell order
     Trade trade2;
-    trade2.buyOrderId = -1;
+    trade2.buyOrderId = -2; // not -1 because when put -1 it matches it with current active buy order id which is also -1 and acts like we filled a non-existing buy order (RESULTS IN A BUG!!!)
     trade2.sellOrderId = strategy.get_active_sell_order_id();
     trade2.priceTick = 1000 + 2;
     trade2.quantity = 100;
