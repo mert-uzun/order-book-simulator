@@ -51,6 +51,7 @@ add_executable(AllTests
     tests/test_metrics.cpp
     tests/test_latency.cpp
     tests/test_strategy.cpp
+    tests/test_market_engine.cpp
 )
 
 # Link the test executable with the library and GoogleTests framework + main
