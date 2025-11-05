@@ -114,31 +114,22 @@ void Strategy::on_market_update(long long timestamp, long long market_price) {
 void Strategy::on_fill(const Trade& trade) {
     if (trade.buyOrderId == active_buy_order_id) {
         latency_queue.schedule_event(trade.timestampUs, LatencyQueue::ActionType::ACKNOWLEDGE_FILL, [this, trade](long long ack_exec_time) {
-            std::cout << "on_fill: " << trade.buyOrderId << std::endl;
             auto it = metrics.order_cache.find(trade.buyOrderId);
             if (it == metrics.order_cache.end()) {
                 return;
             }
-            std::cout << "order cache found: " << it->second.remaining_qty << std::endl;
             int remaining_qty = metrics.order_cache.find(trade.buyOrderId)->second.remaining_qty - trade.quantity;
-            std::cout << "metrics.on_fill: " << remaining_qty << std::endl;
             metrics.on_fill(trade.buyOrderId, trade.priceTick, ack_exec_time, trade.quantity, trade.was_instant);
             if (remaining_qty == 0 && active_buy_order_id == trade.buyOrderId) {
                 active_buy_order_id = -1;
                 order_book.cancel_order(trade.buyOrderId);
-                std::cout << "order cancelled. " << trade.buyOrderId << std::endl;
             }
 
-            std::cout << "pong is cheduled. " << ack_exec_time << std::endl;
             latency_queue.schedule_event(ack_exec_time, LatencyQueue::ActionType::ORDER_SEND, [this, trade](long long exec_time) {
-                std::cout << "pong executed. " << exec_time << std::endl;
                 long long pong_order_id = order_book.add_limit_order(false, trade.priceTick + 1, trade.quantity, exec_time);
-                std::cout << "pong order id: " << pong_order_id << std::endl;
                 if (order_book.get_order_lookup().find(pong_order_id) != order_book.get_order_lookup().end()) {
                     sell_pongs.emplace(trade.priceTick + 1, std::pair<long long, int>(pong_order_id, trade.quantity));
                     metrics.on_order_placed(pong_order_id, Metrics::Side::SELLS, trade.priceTick + 1, exec_time, trade.quantity, false);
-                    std::cout << "pong placed. " << pong_order_id << std::endl;
-                    std::cout << "order cache size: " << metrics.order_cache.size() << std::endl;
                 }
             });
         });        
@@ -149,26 +140,18 @@ void Strategy::on_fill(const Trade& trade) {
             if (it == metrics.order_cache.end()) {
                 return;
             }
-            std::cout << "order cache found: " << it->second.remaining_qty << std::endl;
             int remaining_qty = metrics.order_cache.find(trade.sellOrderId)->second.remaining_qty - trade.quantity;
-            std::cout << "metrics.on_fill: " << remaining_qty << std::endl;
             metrics.on_fill(trade.sellOrderId, trade.priceTick, ack_exec_time, trade.quantity, trade.was_instant);
             if (remaining_qty == 0 && active_sell_order_id == trade.sellOrderId) {
                 active_sell_order_id = -1;
                 order_book.cancel_order(trade.sellOrderId);
-                std::cout << "order cancelled. " << trade.sellOrderId << std::endl;
             }
 
-            std::cout << "pong is cheduled. " << ack_exec_time << std::endl;
             latency_queue.schedule_event(ack_exec_time, LatencyQueue::ActionType::ORDER_SEND, [this, trade](long long exec_time) {
-                std::cout << "pong executed. " << exec_time << std::endl;
                 long long pong_order_id = order_book.add_limit_order(true, trade.priceTick - 1, trade.quantity, exec_time);
-                std::cout << "pong order id: " << pong_order_id << std::endl;
                 if (order_book.get_order_lookup().find(pong_order_id) != order_book.get_order_lookup().end()) {
                     buy_pongs.emplace(trade.priceTick - 1, std::pair<long long, int>(pong_order_id, trade.quantity));
                     metrics.on_order_placed(pong_order_id, Metrics::Side::BUYS, trade.priceTick - 1, exec_time, trade.quantity, false);    
-                    std::cout << "pong placed. " << pong_order_id << std::endl;
-                    std::cout << "order cache size: " << metrics.order_cache.size() << std::endl;
                 }
             });
         });

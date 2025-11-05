@@ -596,13 +596,7 @@ TEST(StrategyTest, PongOnPingBuyFill) {
     trade2.timestampUs = 3501;
     trade2.was_instant = false;
     strategy.on_fill(trade2);
-    std::cout << "before filling: " << orderbook.get_sells().size() << std::endl;
-    std::cout << "latency queue size: " << strategy.get_latency_queue().get_event_queue().size() << std::endl;
-    std::cout << "order cache size: " << strategy.get_metrics().order_cache.size() << std::endl;
     strategy.execute_latency_queue(4500);
-    std::cout << "After execute_latency_queue: " << orderbook.get_sells().size() << std::endl;
-    std::cout << "latency queue size: " << strategy.get_latency_queue().get_event_queue().size() << std::endl;
-    std::cout << "order cache size: " << strategy.get_metrics().order_cache.size() << std::endl;
 
     // Check if the ping buy is gone
     EXPECT_EQ(strategy.get_active_sell_order_id(), -1)
