@@ -27,11 +27,11 @@ void MarketEngine::simulate_background_dynamics() {
 
     long long prev_price_ticks = market_price_ticks;
 
-    market_price_ticks += move(rand_engine) * volatility;
+    market_price_ticks += std::llround(move(rand_engine) * volatility);
 
     // A rare jump in the market simulating news
     if (jump(rand_engine) < 0.001) {
-        market_price_ticks += move(rand_engine) * (5 * volatility);
+        market_price_ticks += std::llround(move(rand_engine) * (5 * volatility));
     }
 
     long long price_change = market_price_ticks - prev_price_ticks;
