@@ -114,15 +114,30 @@ TEST(MarketEngineTest, SubmitSingleSellOrder) {
 
 /**
     ============================================================
-    TEST 5: PartialFillMarketOrder
+    TEST 4: StrategyPlacesQuotesOnInitialMarketUpdate
     ============================================================
-    PURPOSE: Verify a larger market order is partially filled by a smaller limit order.
+    PURPOSE: Verify that after the first call to update(), the Strategy's on_market_update() method is triggered and places its initial buy and sell orders into the order book.
     ============================================================
 */
-TEST(MarketEngineTest, PartialFillMarketOrder) {
+TEST(MarketEngineTest, StrategyPlacesQuotesOnInitialMarketUpdate) {
+    MarketEngine marketengine(100, 2, 1000, 3, 0, 1000, 2, 1.0, 0.3);
+    marketengine.update(1000);
+    marketengine.execute_events_until(3000);
+    EXPECT_EQ(marketengine.get_orderbook().get_buys().size(), 1)
+        << "There should be one buy order in the orderbook after the first update. Current size: " << marketengine.get_orderbook().get_buys().size() << "." << std::endl;
+    EXPECT_NE(marketengine.get_strategy().get_active_buy_order_id(), -1)
+        << "Active buy order id should not be -1 after the first update. Current active buy order id: " << marketengine.get_strategy().get_active_buy_order_id() << "." << std::endl;
+    EXPECT_EQ(marketengine.get_orderbook().get_sells().size(), 1)
+        << "There should be one sell order in the orderbook after the first update. Current size: " << marketengine.get_orderbook().get_sells().size() << "." << std::endl;
+    EXPECT_NE(marketengine.get_strategy().get_active_sell_order_id(), -1)
+        << "Active sell order id should not be -1 after the first update. Current active sell order id: " << marketengine.get_strategy().get_active_sell_order_id() << "." << std::endl;
 }
 
 /**
+    EXPECT_EQ(marketengine.get_orderbook().get_sells().begin()->second.front().priceTick, marketengine.get_market_price_ticks() + 2)
+        << "The sell order price tick should be 1002 after the first update. Current price tick: " << marketengine.get_orderbook().get_sells().begin()->second.front().priceTick << "." << std::endl;
+    EXPECT_EQ(marketengine.get_orderbook().get_sells().begin()->second.front().quantity, 100)
+        << "The sell order quantity should be 100 after the first update. Current quantity: " << marketengine.get_orderbook().get_sells().begin()->second.front().quantity << "." << std::endl;
     ============================================================
     TEST 6: FullFillMultipleLimitOrders
     ============================================================
