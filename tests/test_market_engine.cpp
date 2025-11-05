@@ -112,17 +112,6 @@ TEST(MarketEngineTest, SubmitSingleSellOrder) {
         << "The sell order quantity should be 100 after submitting a sell order. Current quantity: " << marketengine.get_orderbook().get_sells().begin()->second.front().quantity << "." << std::endl;
 }
 
-
-/**
-    ============================================================
-    TEST 4: NoMatchDifferentPrices
-    ============================================================
-    PURPOSE: Verify that a buy and sell order with a price gap do not get matched.
-    ============================================================
-*/
-TEST(MarketEngineTest, NoMatchDifferentPrices) {
-}
-
 /**
     ============================================================
     TEST 5: PartialFillMarketOrder
