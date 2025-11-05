@@ -41,4 +41,24 @@ class MarketEngine {
         Strategy& get_strategy() {
             return strategy;
         }
+
+        Metrics& get_metrics() {
+            return metrics;
+        }
+
+        long long get_market_price_ticks() {
+            return market_price_ticks;
+        }
+
+        long long get_spread() {
+            return spread;
+        }
+
+        double get_volatility() {
+            return volatility;
+        }
+
+        double get_fill_probability() {
+            return fill_probability;
+        }
 };

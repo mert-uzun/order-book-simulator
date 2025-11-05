@@ -10,6 +10,14 @@
 */
 TEST(MarketEngineTest, MarketEngineInitialization) {
     MarketEngine marketengine(100, 2, 1000, 3, 500000, 1000, 2, 1.0, 0.3);
+    EXPECT_EQ(marketengine.get_market_price_ticks(), 1000)
+        << "The market price should be 1000 after initialization. Current market price: " << marketengine.get_market_price_ticks() << "." << std::endl;
+    EXPECT_EQ(marketengine.get_spread(), 2)
+        << "The spread should be 2 after initialization. Current spread: " << marketengine.get_spread() << "." << std::endl;
+    EXPECT_EQ(marketengine.get_volatility(), 1.0)
+        << "The volatility should be 1.0 after initialization. Current volatility: " << marketengine.get_volatility() << "." << std::endl;
+    EXPECT_EQ(marketengine.get_fill_probability(), 0.3)
+        << "The fill probability should be 0.3 after initialization. Current fill probability: " << marketengine.get_fill_probability() << "." << std::endl;
     EXPECT_EQ(marketengine.get_orderbook().get_buys().size(), 0)
         << "There should be no buy orders in the orderbook after initialization. Current size: " << marketengine.get_orderbook().get_buys().size() << "." << std::endl;
     EXPECT_EQ(marketengine.get_orderbook().get_sells().size(), 0)
@@ -18,24 +26,34 @@ TEST(MarketEngineTest, MarketEngineInitialization) {
         << "There should be no active buy order after initialization. Current active buy order id: " << marketengine.get_strategy().get_active_buy_order_id() << "." << std::endl;
     EXPECT_EQ(marketengine.get_strategy().get_active_sell_order_id(), -1)
         << "There should be no active sell order after initialization. Current active sell order id: " << marketengine.get_strategy().get_active_sell_order_id() << "." << std::endl;
+    EXPECT_EQ(marketengine.get_strategy().get_tick_offset_from_mid(), 2)
+        << "The tick offset from mid should be 2 after initialization. Current tick offset from mid: " << marketengine.get_strategy().get_tick_offset_from_mid() << "." << std::endl;
+    EXPECT_EQ(marketengine.get_strategy().get_max_inventory(), 1000)
+        << "The max inventory should be 1000 after initialization. Current max inventory: " << marketengine.get_strategy().get_max_inventory() << "." << std::endl;
+    EXPECT_EQ(marketengine.get_strategy().get_cancel_threshold_ticks(), 3)
+        << "The cancel threshold ticks should be 3 after initialization. Current cancel threshold ticks: " << marketengine.get_strategy().get_cancel_threshold_ticks() << "." << std::endl;
+    EXPECT_EQ(marketengine.get_strategy().get_cooldown_between_requotes(), 500000)
+        << "The cooldown between requotes should be 500000 after initialization. Current cooldown between requotes: " << marketengine.get_strategy().get_cooldown_between_requotes() << "." << std::endl;
+    EXPECT_EQ(marketengine.get_strategy().get_quote_size(), 100)
+        << "The quote size should be 100 after initialization. Current quote size: " << marketengine.get_strategy().get_quote_size() << "." << std::endl;
     EXPECT_EQ(marketengine.get_strategy().get_metrics().order_cache.size(), 0)
         << "There should be no orders in the order cache after initialization. Current order cache size: " << marketengine.get_strategy().get_metrics().order_cache.size() << "." << std::endl;
     EXPECT_EQ(marketengine.get_strategy().get_metrics().gross_traded_qty, 0)
         << "There should be no trades executed after initialization. Current gross traded quantity: " << marketengine.get_strategy().get_metrics().gross_traded_qty << "." << std::endl;
     EXPECT_EQ(marketengine.get_strategy().get_metrics().last_trade_price_ticks, 0)
         << "There should be no last trade price after initialization. Current last trade price: " << marketengine.get_strategy().get_metrics().last_trade_price_ticks << "." << std::endl;
-    EXPECT_EQ(marketengine.get_strategy().get_metrics().last_mark_price_ticks, 1000)
-        << "There should be no last mark price after initialization. Current last mark price: " << marketengine.get_strategy().get_metrics().last_mark_price_ticks << "." << std::endl;
+    EXPECT_EQ(marketengine.get_strategy().get_metrics().last_mark_price_ticks, 0)
+        << "There should be no last mark price after initialization before observing the market in strategy. Current last mark price: " << marketengine.get_strategy().get_metrics().last_mark_price_ticks << "." << std::endl;
     EXPECT_EQ(marketengine.get_strategy().get_metrics().last_return_bucket_start_us, 0)
         << "There should be no last return bucket start time after initialization. Current last return bucket start time: " << marketengine.get_strategy().get_metrics().last_return_bucket_start_us << "." << std::endl;
     EXPECT_EQ(marketengine.get_strategy().get_metrics().last_return_bucket_total_pnl_ticks, 0)
         << "There should be no last return bucket total PnL after initialization. Current last return bucket total PnL: " << marketengine.get_strategy().get_metrics().last_return_bucket_total_pnl_ticks << "." << std::endl;
-    EXPECT_EQ(marketengine.get_strategy().get_metrics().current_best_bid_price_ticks, 1000)
+    EXPECT_EQ(marketengine.get_strategy().get_metrics().current_best_bid_price_ticks, 0)
         << "There should be no current best bid price after initialization. Current current best bid price: " << marketengine.get_strategy().get_metrics().current_best_bid_price_ticks << "." << std::endl;
-    EXPECT_EQ(marketengine.get_strategy().get_metrics().current_best_ask_price_ticks, 1000)
+    EXPECT_EQ(marketengine.get_strategy().get_metrics().current_best_ask_price_ticks, 0)
         << "There should be no current best ask price after initialization. Current current best ask price: " << marketengine.get_strategy().get_metrics().current_best_ask_price_ticks << "." << std::endl;
-    EXPECT_EQ(marketengine.get_strategy().get_metrics().volatility, 1.0)
-        << "There should be no volatility after initialization. Current volatility: " << marketengine.get_strategy().get_metrics().volatility << "." << std::endl;
+    EXPECT_EQ(marketengine.get_strategy().get_metrics().volatility, 0.0)
+        << "There should be no final volatility after initialization. Current volatility: " << marketengine.get_strategy().get_metrics().volatility << "." << std::endl;
     EXPECT_EQ(marketengine.get_strategy().get_metrics().sharpe_ratio, 0.0)
         << "There should be no Sharpe ratio after initialization. Current Sharpe ratio: " << marketengine.get_strategy().get_metrics().sharpe_ratio << "." << std::endl;
     EXPECT_EQ(marketengine.get_strategy().get_metrics().gross_profit, 0.0)
