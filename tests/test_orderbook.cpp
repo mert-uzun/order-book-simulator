@@ -9,7 +9,8 @@
     ============================================================
  */
 TEST(OrderBookTest, EmptyOrderBookTest) {
-    OrderBook orderbook;
+    Metrics metrics;
+    OrderBook orderbook(metrics);
 
     EXPECT_TRUE(orderbook.get_buys().empty())
         << "New orderbook should have no buy orders.";
@@ -26,7 +27,8 @@ TEST(OrderBookTest, EmptyOrderBookTest) {
     ============================================================
  */
 TEST(OrderBookTest, AddSingleBuyOrder) {
-    OrderBook orderbook;
+    Metrics metrics;
+    OrderBook orderbook(metrics);
 
     long long order_id = orderbook.add_limit_order(true, 1000000, 10, 1);
 
@@ -65,7 +67,8 @@ TEST(OrderBookTest, AddSingleBuyOrder) {
     ============================================================
  */
 TEST(OrderBookTest, AddSingleSellOrder) {
-    OrderBook orderbook;
+    Metrics metrics;
+    OrderBook orderbook(metrics);
 
     long long order_id = orderbook.add_limit_order(false, 1000000, 10, 1);
 
@@ -104,7 +107,8 @@ TEST(OrderBookTest, AddSingleSellOrder) {
     ============================================================
  */
 TEST(OrderBookTest, AddMultipleBuyOrders) {
-    OrderBook orderbook;
+    Metrics metrics;
+    OrderBook orderbook(metrics);
     long long order_id1 = orderbook.add_limit_order(true, 1000000, 10, 1);
     long long order_id2 = orderbook.add_limit_order(true, 999999, 12, 2);
 
@@ -165,7 +169,8 @@ TEST(OrderBookTest, AddMultipleBuyOrders) {
     ============================================================
  */
 TEST(OrderBookTest, AddMultipleSellOrders) {
-    OrderBook orderbook;
+    Metrics metrics;
+    OrderBook orderbook(metrics);
 
     long long order_id1 = orderbook.add_limit_order(false, 1000000, 10, 1);
     long long order_id2 = orderbook.add_limit_order(false, 999999, 12, 2);
@@ -227,7 +232,8 @@ TEST(OrderBookTest, AddMultipleSellOrders) {
     ============================================================
  */
 TEST(OrderBookTest, AddMultipleBuyOrdersWithSamePrice) {
-    OrderBook orderbook;
+    Metrics metrics;
+    OrderBook orderbook(metrics);
 
     long long order_id1 = orderbook.add_limit_order(true, 1000000, 10, 1);
     long long order_id2 = orderbook.add_limit_order(true, 1000000, 12, 2);
@@ -297,7 +303,8 @@ TEST(OrderBookTest, AddMultipleBuyOrdersWithSamePrice) {
     ============================================================
  */
 TEST(OrderBookTest, AddMultipleSellOrdersWithSamePrice) {
-    OrderBook orderbook;
+    Metrics metrics;
+    OrderBook orderbook(metrics);
 
     long long order_id1 = orderbook.add_limit_order(false, 1000000, 10, 1);
     long long order_id2 = orderbook.add_limit_order(false, 1000000, 12, 2);
@@ -367,7 +374,8 @@ TEST(OrderBookTest, AddMultipleSellOrdersWithSamePrice) {
     ============================================================
  */
 TEST(OrderBookTest, BestBidCalculation) {
-    OrderBook orderbook;
+    Metrics metrics;
+    OrderBook orderbook(metrics);
     
     long long order_id11 = orderbook.add_limit_order(true, 1000000, 11, 11);
     long long order_id12 = orderbook.add_limit_order(true, 1000000, 12, 12);
@@ -401,7 +409,8 @@ TEST(OrderBookTest, BestBidCalculation) {
     ============================================================
  */
  TEST(OrderBookTest, BestAskCalculation) {
-    OrderBook orderbook;
+    Metrics metrics;
+    OrderBook orderbook(metrics);
 
     long long order_id11 = orderbook.add_limit_order(false, 1000000, 11, 11);
     long long order_id12 = orderbook.add_limit_order(false, 1000000, 12, 12);
@@ -435,7 +444,8 @@ TEST(OrderBookTest, BestBidCalculation) {
     ============================================================
  */
 TEST(OrderBookTest, OrderMatchingWithLimitBuyAndLimitSell) {
-    OrderBook orderbook;
+    Metrics metrics;
+    OrderBook orderbook(metrics);
 
     // ============================================================
     // FIRST MATCHING SCENARIO - First bid then ask
@@ -590,7 +600,8 @@ TEST(OrderBookTest, OrderMatchingWithLimitBuyAndLimitSell) {
     ============================================================
  */
 TEST(OrderBookTest, OrderMatchingWithIOCOrders) {
-    OrderBook orderbook;
+    Metrics metrics;
+    OrderBook orderbook(metrics);
 
     // ============================================================
     // FIRST SCENARIO - One limit buy then one IOC sell
@@ -783,7 +794,8 @@ TEST(OrderBookTest, OrderMatchingWithIOCOrders) {
     ============================================================
  */
 TEST(OrderBookTest, PartialFillScenario) {
-    OrderBook orderbook;
+    Metrics metrics;
+    OrderBook orderbook(metrics);
 
     // Add a limit buy order and partially fill it with an IOC sell order
     long long limit_buy_order_id = orderbook.add_limit_order(true, 1000000, 10, 1);
@@ -854,7 +866,8 @@ TEST(OrderBookTest, PartialFillScenario) {
     ============================================================
  */
 TEST(OrderBookTest, CancelOrderBasic) {
-    OrderBook orderbook;
+    Metrics metrics;
+    OrderBook orderbook(metrics);
 
     // Add one limit buy order and one limit sell order with non-matching price levels for them to rest in the market
     long long order_id1 = orderbook.add_limit_order(true, 1000000, 10, 1);
@@ -885,7 +898,8 @@ TEST(OrderBookTest, CancelOrderBasic) {
     ============================================================
  */
 TEST(OrderBookTest, CancelNonExistentOrder) {
-    OrderBook orderbook;
+    Metrics metrics;
+    OrderBook orderbook(metrics);
 
     // Cancel a non existent order and check if it returns 1, indicating the order was not found. If it returns 0, this means somehow the order was successfully cancelled and there might be a bug.
     EXPECT_EQ(orderbook.cancel_order(-1), 1)

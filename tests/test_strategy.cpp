@@ -18,8 +18,9 @@
     ============================================================
 */
 TEST(StrategyTest, ConstructorInitialization) {
-    OrderBook orderbook;
-    Strategy strategy(orderbook, 100, 2, 1000, 3, 500000);
+    Metrics metrics;
+    OrderBook orderbook(metrics);
+    Strategy strategy(metrics, orderbook, 100, 2, 1000, 3, 500000);
 
     EXPECT_EQ(strategy.get_quote_size(), 100)
         << "There is a problem with the quote size upon Strategy construction. Expected: 100, Result: " << strategy.get_quote_size() << std::endl;
@@ -67,8 +68,9 @@ TEST(StrategyTest, ConstructorInitialization) {
     ============================================================
 */
 TEST(StrategyTest, SettersAndGetters) {
-    OrderBook orderbook;
-    Strategy strategy(orderbook, 100, 2, 1000, 3, 500000);
+    Metrics metrics;
+    OrderBook orderbook(metrics);
+    Strategy strategy(metrics, orderbook, 100, 2, 1000, 3, 500000);
     
     // ===== Quote Size =====
     EXPECT_NO_THROW(strategy.set_quote_size(500))
@@ -157,8 +159,9 @@ TEST(StrategyTest, SettersAndGetters) {
     ============================================================
 */
 TEST(StrategyTest, PlacePingOrders) {
-    OrderBook orderbook;
-    Strategy strategy(orderbook, 100, 2, 1000, 3, 0);
+    Metrics metrics;
+    OrderBook orderbook(metrics);
+    Strategy strategy(metrics, orderbook, 100, 2, 1000, 3, 0);
 
     // Set market price to 1000
     strategy.observe_the_market(1000, 1000);
@@ -214,8 +217,9 @@ TEST(StrategyTest, PlacePingOrders) {
     ============================================================
 */
 TEST(StrategyTest, InventoryLimitsRespected) {
-    OrderBook orderbook;
-    Strategy strategy(orderbook, 100, 2, 1000, 3, 500000);
+    Metrics metrics;
+    OrderBook orderbook(metrics);
+    Strategy strategy(metrics, orderbook, 100, 2, 1000, 3, 500000);
 
     // MARKET PRICE IS ASSUMED TO BE 1000
 
@@ -284,8 +288,9 @@ TEST(StrategyTest, InventoryLimitsRespected) {
     ============================================================
 */
 TEST(StrategyTest, CooldownBetweenRequotes) {
-    OrderBook orderbook;
-    Strategy strategy(orderbook, 100, 2, 1000, 3, 500000);
+    Metrics metrics;
+    OrderBook orderbook(metrics);
+    Strategy strategy(metrics, orderbook, 100, 2, 1000, 3, 500000);
 
     // ========================================
     // In this test, we will first place a ping buy order and execute it. Then try to place another buy without respecting the cooldown. Second order should not be added.
@@ -447,8 +452,9 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
     ============================================================
 */
 TEST(StrategyTest, CancelOnMarketMove) {
-    OrderBook orderbook;
-    Strategy strategy(orderbook, 100, 2, 1000, 3, 500000);
+    Metrics metrics;
+    OrderBook orderbook(metrics);
+    Strategy strategy(metrics, orderbook, 100, 2, 1000, 3, 500000);
 
     // ========================================
     // First, observe the market, place a ping buy and a ping sell order.
@@ -518,8 +524,9 @@ TEST(StrategyTest, CancelOnMarketMove) {
     ============================================================
 */
 TEST(StrategyTest, PongOnPingBuyFill) {
-    OrderBook orderbook;
-    Strategy strategy(orderbook, 100, 2, 1000, 3, 0);
+    Metrics metrics;
+    OrderBook orderbook(metrics);
+    Strategy strategy(metrics, orderbook, 100, 2, 1000, 3, 0);
 
     // ========================================
     // In this test, we will place a ping order first and fill it manually, then check if a pong sell order exists in the orderbook with correct data. Then we will test it the other way around.
