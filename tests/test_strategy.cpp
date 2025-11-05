@@ -436,7 +436,7 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
     trade4.timestampUs = 2000000 + 8501;
     trade4.was_instant = false;
     strategy.on_fill(trade4); // This adds another pong buy order to orderbook.buys
-    strategy.execute_latency_queue(2000000 + 9000);
+    strategy.execute_latency_queue(2000000 + 10000);
 
     EXPECT_EQ(strategy.get_active_sell_order_id(), -1)
         << "Active sell order id is not -1 after filling the order." << std::endl;
