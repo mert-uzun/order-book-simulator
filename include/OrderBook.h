@@ -8,6 +8,7 @@
 #include "Order.h"
 #include "Trade.h"
 #include "TradeLog.h"
+#include "Metrics.h"
 
 class OrderBook {
     private:
@@ -15,8 +16,9 @@ class OrderBook {
         std::map<long long, std::list<Order>> sells;
         std::unordered_map<long long, std::tuple<long long, std::list<Order>::iterator>> order_lookup;
         TradeLog trade_log;
+        Metrics& metrics; // related metrics object from strategy
     public:
-        OrderBook();
+        OrderBook(Metrics& metrics);
         long long add_limit_order(bool isBuy, long long priceTick, int quantity, long long timestamp);
         std::map<long long, std::list<Order>>::reverse_iterator get_best_bid();
         std::map<long long, std::list<Order>>::iterator get_best_ask();

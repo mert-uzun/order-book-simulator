@@ -1,6 +1,7 @@
 #pragma once
 
 #include "OrderBook.h"
+#include "Metrics.h"
 #include "Trade.h"
 #include "Strategy.h"
 #include <sys/stat.h>
@@ -8,6 +9,7 @@
 
 class MarketEngine {
     private:
+        Metrics metrics;
         OrderBook orderbook;
         Strategy strategy;
 

@@ -17,7 +17,7 @@
 */
 class Strategy {
     private:
-        Metrics metrics;
+        Metrics& metrics;
         OrderBook& order_book;
         LatencyQueue latency_queue;
 
@@ -49,7 +49,7 @@ class Strategy {
         };
         State state;
     public:
-        Strategy(OrderBook& orderbook, int quote_size, long long tick_offset, long long max_inv, long long cancel_threshold, long long cooldown_between_requotes);
+        Strategy(Metrics& metrics, OrderBook& orderbook, int quote_size, long long tick_offset, long long max_inv, long long cancel_threshold, long long cooldown_between_requotes);
         ~Strategy();
         
         void observe_the_market(long long timestamp, long long market_price);

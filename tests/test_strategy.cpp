@@ -547,7 +547,7 @@ TEST(StrategyTest, PongOnPingBuyFill) {
         << "Ping buy order should be removed from the orderbook because it should be filled. Current size: " << orderbook.get_buys().size() << "." << std::endl;
     EXPECT_EQ(orderbook.get_buys().size(), 0)
         << "Ping buy order should be removed from the orderbook because it should be filled. Current size: " << orderbook.get_buys().size() << "." << std::endl;
-    EXPECT_EQ(strategy.get_metrics().order_cache.size(), 0)
+    EXPECT_EQ(strategy.get_metrics().order_cache.size(), 1) // Ping is gone but now we have a pong sell order in the order cache
         << "Ping buy order should be removed from the orderbook because it should be filled. Current size: " << strategy.get_metrics().order_cache.size() << "." << std::endl;
 
     // Now check if a pong sell order with correct data exists
@@ -595,13 +595,13 @@ TEST(StrategyTest, PongOnPingBuyFill) {
     // Check if the ping buy is gone
     EXPECT_EQ(strategy.get_active_sell_order_id(), -1)
         << "Ping sell order should be removed from the orderbook because it should be filled. Current size: " << orderbook.get_sells().size() << "." << std::endl;
-    EXPECT_EQ(orderbook.get_sells().size(), 1) // 1 from the previous test's pong
+    EXPECT_EQ(orderbook.get_sells().size(), 0) // Placed pong buy order at 1001 automatically filled the pong sell order placed at 999 in previous scenario
         << "Ping sell order should be removed from the orderbook because it should be filled. Current size: " << orderbook.get_sells().size() << "." << std::endl;
-    EXPECT_EQ(strategy.get_metrics().order_cache.size(), 1) // 1 from the previous test's pong
+    EXPECT_EQ(strategy.get_metrics().order_cache.size(), 0) // 0 because we filled pings manually and pongs automatically filled each other
         << "Ping sell order should be removed from the orderbook because it should be filled. Current size: " << strategy.get_metrics().order_cache.size() << "." << std::endl;
 
     // Now check if a pong buy order with correct data exists
-    EXPECT_EQ(orderbook.get_buys().size(), 1)
+    EXPECT_EQ(orderbook.get_buys().size(), 0)
         << "Pong buy order is not placed into the orderbook." << std::endl;
     EXPECT_EQ(strategy.get_active_buy_order_id(), -1)
         << "Pong order is NOT the active buy order, meaning active_buy_order_id should stay -1." << std::endl;

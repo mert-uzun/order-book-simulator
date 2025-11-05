@@ -3,7 +3,7 @@
 #include "../include/Order.h"
 #include "../include/OrderBook.h"
 
-OrderBook::OrderBook() : buys(), sells(), order_lookup(), trade_log() {}
+OrderBook::OrderBook(Metrics& metrics) : buys(), sells(), order_lookup(), trade_log(), metrics(metrics) {}
 
 /**
  *   Check if given price has a match in the current market (if its a buy >= best_ask | if its a sell <= best_bid) 
@@ -49,7 +49,8 @@ long long OrderBook::add_limit_order(bool isBuy, long long priceTick, int quanti
             
             if (matched_order.quantity == 0) {
                 order_lookup.erase(matched_order.id);
-                orders_at_price.pop_front();    
+                orders_at_price.pop_front();
+                metrics.on_fill(matched_order.id, opposite_best_price, timestamp, matched_quantity, false);
             }
             if (new_order.quantity == 0) {
                 if (orders_at_price.empty()) {
@@ -102,7 +103,7 @@ long long OrderBook::add_IOC_order(bool isBuy, int quantity, long long timestamp
             if (matched_order.quantity == 0) {
                 order_lookup.erase(matched_order.id);
                 orders_at_best_price.pop_front();
-                
+                metrics.on_fill(matched_order.id, matched_order.priceTick, matched_quantity, matched_quantity, true);
             }
             if (new_market_order.quantity == 0) {
                 if (orders_at_best_price.empty()) {
