@@ -78,6 +78,17 @@ TEST(MarketEngineTest, MarketEngineInitialization) {
     ============================================================
 */
 TEST(MarketEngineTest, SubmitSingleBuyOrder) {
+    MarketEngine marketengine(100, 2, 1000, 3, 0, 1000, 2, 1.0, 0.3);
+    marketengine.update(1000);
+    marketengine.get_strategy().observe_the_market(1000, 1000);
+    marketengine.get_strategy().place_ping_buy(1500);
+    marketengine.update(2500);
+    EXPECT_EQ(marketengine.get_orderbook().get_buys().size(), 1)
+        << "There should be one buy order in the orderbook after submitting a buy order. Current size: " << marketengine.get_orderbook().get_buys().size() << "." << std::endl;
+    EXPECT_EQ(marketengine.get_orderbook().get_buys().begin()->second.front().priceTick, 998)
+        << "The buy order price tick should be 1500 after submitting a buy order. Current price tick: " << marketengine.get_orderbook().get_buys().begin()->second.front().priceTick << "." << std::endl;
+    EXPECT_EQ(marketengine.get_orderbook().get_buys().begin()->second.front().quantity, 100)
+        << "The buy order quantity should be 100 after submitting a buy order. Current quantity: " << marketengine.get_orderbook().get_buys().begin()->second.front().quantity << "." << std::endl;
 }
 
 /**
