@@ -134,45 +134,18 @@ TEST(MarketEngineTest, StrategyPlacesQuotesOnInitialMarketUpdate) {
 }
 
 /**
-    EXPECT_EQ(marketengine.get_orderbook().get_sells().begin()->second.front().priceTick, marketengine.get_market_price_ticks() + 2)
-        << "The sell order price tick should be 1002 after the first update. Current price tick: " << marketengine.get_orderbook().get_sells().begin()->second.front().priceTick << "." << std::endl;
-    EXPECT_EQ(marketengine.get_orderbook().get_sells().begin()->second.front().quantity, 100)
-        << "The sell order quantity should be 100 after the first update. Current quantity: " << marketengine.get_orderbook().get_sells().begin()->second.front().quantity << "." << std::endl;
-    ============================================================
-    TEST 6: FullFillMultipleLimitOrders
-    ============================================================
-    PURPOSE: Verify a market order is fully filled by multiple smaller limit orders.
-    ============================================================
+============================================================
+TEST 5: MarketPriceAndSpreadStableWithZeroVolatility
+============================================================
+PURPOSE: A corrected baseline. When volatility is 0, verify that calling update() multiple times does NOT change the market_price_ticks or the spread, as their calculations directly depend on a volatility of 0.
+============================================================
 */
-TEST(MarketEngineTest, FullFillMultipleLimitOrders) {
-}
-
-/**
-    ============================================================
-    TEST 7: CancelOrder
-    ============================================================
-    PURPOSE: Verify an existing order can be cancelled and is removed from the order book.
-    ============================================================
-*/
-TEST(MarketEngineTest, CancelOrder) {
-}
-
-/**
-    ============================================================
-    TEST 8: CancelNonExistentOrder
-    ============================================================
-    PURPOSE: Verify that attempting to cancel a non-existent order has no effect.
-    ============================================================
-*/
-TEST(MarketEngineTest, CancelNonExistentOrder) {
-}
-
-/**
-    ============================================================
-    TEST 9: MarketPriceCalculation
-    ============================================================
-    PURPOSE: Verify the market price (mid-price) is calculated correctly after new orders are added.
-    ============================================================
-*/
-TEST(MarketEngineTest, MarketPriceCalculation) {
+TEST(MarketEngineTest, MarketPriceAndSpreadStableWithZeroVolatility) {
+    MarketEngine marketengine(100, 2, 1000, 3, 0, 1000, 2, 0.0, 0.3);
+    marketengine.update(1000);
+    marketengine.execute_events_until(3000);
+    EXPECT_EQ(marketengine.get_market_price_ticks(), 1000)
+        << "Market price should not have changed. Current market price: " << marketengine.get_market_price_ticks() << "." << std::endl;
+    EXPECT_EQ(marketengine.get_spread(), 2)
+        << "Spread should not have changed. Current spread: " << marketengine.get_spread() << "." << std::endl;
 }
