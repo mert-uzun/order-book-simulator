@@ -454,7 +454,7 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
 TEST(StrategyTest, CancelOnMarketMove) {
     Metrics metrics;
     OrderBook orderbook(metrics);
-    Strategy strategy(metrics, orderbook, 100, 2, 1000, 3, 500000);
+    Strategy strategy(metrics, orderbook, 100, 2, 1000, 3, 0); // Cooldown is 0 to test the cancel mechanism correctly.
 
     // ========================================
     // First, observe the market, place a ping buy and a ping sell order.
