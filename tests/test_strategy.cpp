@@ -546,7 +546,7 @@ TEST(StrategyTest, PongOnPingBuyFill) {
     // Now check if a pong sell order with correct data exists
     EXPECT_EQ(orderbook.get_sells().size(), 1)
         << "Pong sell order is not placed into the orderbook." << std::endl;
-    EXPECT_EQ(strategy.get_active_sell_order_data(), -1)
+    EXPECT_EQ(strategy.get_active_sell_order_id(), -1)
         << "Pong order is NOT the active sell order, meaning active_sell_order_id should stay -1." << std::endl;
 
     Order& pong_sell_order = orderbook.get_sells().begin()->second.front();
@@ -596,7 +596,7 @@ TEST(StrategyTest, PongOnPingBuyFill) {
     // Now check if a pong buy order with correct data exists
     EXPECT_EQ(orderbook.get_buys().size(), 1)
         << "Pong buy order is not placed into the orderbook." << std::endl;
-    EXPECT_EQ(strategy.get_active_buy_order_data(), -1)
+    EXPECT_EQ(strategy.get_active_buy_order_id(), -1)
         << "Pong order is NOT the active buy order, meaning active_buy_order_id should stay -1." << std::endl;
 
     Order& pong_buy_order = orderbook.get_buys().begin()->second.front();

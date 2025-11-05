@@ -78,7 +78,7 @@ class Strategy {
         long long get_current_inventory() const { return metrics.position; }
         long long get_spread_ticks() const { return get_best_ask_ticks() - get_best_bid_ticks(); }
         
-        long long get_quote_size() const { return quote_size; }
+        int get_quote_size() const { return quote_size; }
         long long get_tick_offset_from_mid() const { return tick_offset_from_mid; }
         long long get_max_inventory() const { return max_inventory; }
         long long get_cancel_threshold_ticks() const { return cancel_threshold_ticks; }
@@ -102,7 +102,7 @@ class Strategy {
         LatencyQueue& get_latency_queue() { return latency_queue; }
 
         // Setters
-        void set_quote_size(long long value) { 
+        void set_quote_size(int value) { 
             if (value > 0) {
                 quote_size = value; 
             }
