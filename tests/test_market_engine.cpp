@@ -8,6 +8,8 @@
     PURPOSE: Verify the MarketEngine initializes correctly with an empty order book.
     ============================================================
 */
+TEST(MarketEngineTest, MarketEngineInitialization) {
+}
 
 /**
     ============================================================
@@ -16,6 +18,8 @@
     PURPOSE: Verify a single buy order can be submitted and is correctly reflected in the order book.
     ============================================================
 */
+TEST(MarketEngineTest, SubmitSingleBuyOrder) {
+}
 
 /**
     ============================================================
@@ -24,6 +28,8 @@
     PURPOSE: Verify a single sell order can be submitted and is correctly reflected in the order book.
     ============================================================
 */
+TEST(MarketEngineTest, SubmitSingleSellOrder) {
+}
 
 /**
     ============================================================
@@ -32,6 +38,8 @@
     PURPOSE: Verify a simple buy and sell order at the same price are matched correctly.
     ============================================================
 */
+TEST(MarketEngineTest, SimpleMatchBuyAndSell) {
+}
 
 /**
     ============================================================
@@ -40,6 +48,8 @@
     PURPOSE: Verify that a buy and sell order with a price gap do not get matched.
     ============================================================
 */
+TEST(MarketEngineTest, NoMatchDifferentPrices) {
+}
 
 /**
     ============================================================
@@ -48,6 +58,8 @@
     PURPOSE: Verify a larger market order is partially filled by a smaller limit order.
     ============================================================
 */
+TEST(MarketEngineTest, PartialFillMarketOrder) {
+}
 
 /**
     ============================================================
@@ -56,6 +68,8 @@
     PURPOSE: Verify a market order is fully filled by multiple smaller limit orders.
     ============================================================
 */
+TEST(MarketEngineTest, FullFillMultipleLimitOrders) {
+}
 
 /**
     ============================================================
@@ -64,6 +78,8 @@
     PURPOSE: Verify an existing order can be cancelled and is removed from the order book.
     ============================================================
 */
+TEST(MarketEngineTest, CancelOrder) {
+}
 
 /**
     ============================================================
@@ -72,6 +88,8 @@
     PURPOSE: Verify that attempting to cancel a non-existent order has no effect.
     ============================================================
 */
+TEST(MarketEngineTest, CancelNonExistentOrder) {
+}
 
 /**
     ============================================================
@@ -80,3 +98,5 @@
     PURPOSE: Verify the market price (mid-price) is calculated correctly after new orders are added.
     ============================================================
 */
+TEST(MarketEngineTest, MarketPriceCalculation) {
+}
