@@ -159,7 +159,8 @@ TEST(StrategyTest, SettersAndGetters) {
 TEST(StrategyTest, PlacePingOrders) {
     OrderBook orderbook;
     Strategy strategy(orderbook, 100, 2, 1000, 3, 500000);
-    
+    strategy.set_last_quote_time_us(-1000000); // Set this manueally very far in the past, so add limit orders will pass the cooldown checks.
+
     // Set market price to 1000
     strategy.observe_the_market(1000, 1000);
 
