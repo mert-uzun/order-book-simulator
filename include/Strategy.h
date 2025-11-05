@@ -49,7 +49,7 @@ class Strategy {
         };
         State state;
     public:
-        Strategy(OrderBook& orderbook, long long quote_size, long long tick_offset, long long max_inv, long long cancel_threshold, long long cooldown_between_requotes);
+        Strategy(OrderBook& orderbook, int quote_size, long long tick_offset, long long max_inv, long long cancel_threshold, long long cooldown_between_requotes);
         ~Strategy();
         
         void observe_the_market(long long timestamp, long long market_price);

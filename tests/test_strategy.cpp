@@ -234,7 +234,7 @@ TEST(StrategyTest, InventoryLimitsRespected) {
     strategy.execute_latency_queue(2500); // This executes the observe_the_market action
 
     // Record the order cache size before trying to add the order
-    int order_cache_size_before_trying_to_ping_bid = strategy.get_metrics().order_cache.size();
+    int order_cache_size_before_trying_to_ping_bid = (int)strategy.get_metrics().order_cache.size();
 
     strategy.place_ping_buy(3000); // This should not place any order since inventory is full
 
@@ -262,7 +262,7 @@ TEST(StrategyTest, InventoryLimitsRespected) {
     strategy.execute_latency_queue(5500); // This executes the observe_the_market action
 
     // Record the order cache size before trying to add the order
-    int order_cache_size_before_trying_to_ping_ask = strategy.get_metrics().order_cache.size();
+    int order_cache_size_before_trying_to_ping_ask = (int)strategy.get_metrics().order_cache.size();
 
     strategy.place_ping_ask(6000); // This should not place any order since inventory is full
 
