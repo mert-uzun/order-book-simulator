@@ -128,9 +128,7 @@ class Strategy {
             }
         }
         void set_last_quote_time_us(long long value) { 
-            if (value > last_quote_time_us) {
-                last_quote_time_us = value; 
-            }
+            last_quote_time_us = value; 
         }
         
         void set_state(State value) { state = value; }

@@ -55,7 +55,7 @@ TEST(StrategyTest, ConstructorInitialization) {
         << "Active sell order id is not -1 after Strategy construction." << std::endl;
     EXPECT_EQ(strategy.get_last_pinged_mid_price_ticks(), 0)
         << "Last mid price ticks is not 0 after Strategy construction." << std::endl;
-    EXPECT_EQ(strategy.get_last_quote_time_us(), 0)
+    EXPECT_EQ(strategy.get_last_quote_time_us(), -1000000)
         << "Last quote time us is not 0 after Strategy construction." << std::endl;
 }
 
@@ -333,6 +333,7 @@ TEST(StrategyTest, CooldownBetweenRequotes) {
     // ========================================
     // Second Scenario: First Bid Then Ask
     // ========================================
+    strategy.set_last_quote_time_us(-1000000); // Set this manueally very far in the past, so add limit orders will pass the cooldown checks.
     strategy.observe_the_market(3000, 1000);
     strategy.place_ping_buy(3500);
     strategy.execute_latency_queue(4000);
